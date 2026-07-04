@@ -1,0 +1,32 @@
+spring:
+  application:
+    name: ask-my-docs
+
+  # Connection to the Postgres container started by docker-compose
+  datasource:
+    url: jdbc:postgresql://localhost:5433/ask_my_docs
+    username: postgres
+    password: postgres
+
+  ai:
+    openai:
+      # Never hardcode this — set it as an environment variable before running the app:
+      #   export OPENAI_API_KEY=sk-...   (Mac/Linux)
+
+      api-key: ${OPENAI_API_KEY}
+      chat:
+        options:
+          model: gpt-4o-mini   # cheap + fast, plenty good enough for a demo
+      embedding:
+        options:
+          model: text-embedding-3-small
+
+    vectorstore:
+      pgvector:
+        # Must match the embedding model's output size (text-embedding-3-small = 1536)
+        dimensions: 1536
+        # Lets Spring AI auto-create the vector_store table + pgvector extension on startup
+        initialize-schema: true
+
+server:
+  port: 8080

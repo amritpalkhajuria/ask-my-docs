@@ -1,0 +1,17 @@
+services:
+  postgres:
+    # This image is plain Postgres 16 PLUS the pgvector extension pre-installed —
+    # that's what lets a normal Postgres table store and search embedding vectors.
+    image: pgvector/pgvector:pg16
+    container_name: ask-my-docs-postgres
+    environment:
+      POSTGRES_DB: ask_my_docs
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

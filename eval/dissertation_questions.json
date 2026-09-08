@@ -1,0 +1,181 @@
+{
+  "document": "/Users/amritpalsingh/Documents/240055726_MSc_Dissertation_Amritpal_Singh .pdf",
+  "notes": "Ingest exactly this one document into a clean vector store before running the harness. 20 questions: 12 single_passage, 5 multi_passage, 3 unanswerable, against the real 72-page MSc dissertation.",
+  "questions": [
+    {
+      "id": "q01",
+      "type": "single_passage",
+      "question": "What algorithm combination was chosen for the hybrid rate limiting engine?",
+      "expected_snippets": ["hybrid approach combining sliding window (for fairness) and token bucket (for burst absorption) was adopted"],
+      "answer_must_include": ["sliding window", "token bucket"],
+      "notes": ""
+    },
+    {
+      "id": "q02",
+      "type": "single_passage",
+      "question": "Why was Isolation Forest chosen for anomaly detection over supervised machine learning models?",
+      "expected_snippets": ["Does not require labelled training data"],
+      "answer_must_include": ["Isolation Forest", "labelled"],
+      "notes": ""
+    },
+    {
+      "id": "q03",
+      "type": "single_passage",
+      "question": "What machine learning library was used to implement the Isolation Forest model?",
+      "expected_snippets": ["The Smile library was selected for its efficient implementation of Isolation Forest"],
+      "answer_must_include": ["Smile"],
+      "notes": ""
+    },
+    {
+      "id": "q04",
+      "type": "single_passage",
+      "question": "In the functional correctness test, how many of six consecutive requests were accepted before one was blocked?",
+      "expected_snippets": ["the first five requests were accepted (200 OK), while the sixth was rejected with a 429 Too Many Requests response"],
+      "answer_must_include": ["five", "429"],
+      "notes": ""
+    },
+    {
+      "id": "q05",
+      "type": "single_passage",
+      "question": "What refill interval was the token bucket configured with in the burst-handling experiment?",
+      "expected_snippets": ["a refill interval of two seconds"],
+      "answer_must_include": ["two seconds"],
+      "notes": ""
+    },
+    {
+      "id": "q06",
+      "type": "single_passage",
+      "question": "In the first Isolation Forest test scenario, how many requests were sent and with what delay between them?",
+      "expected_snippets": ["a normal traffic burst was simulated by sending 20 requests with a 1000 ms delay between them"],
+      "answer_must_include": ["20 requests", "1000 ms"],
+      "notes": ""
+    },
+    {
+      "id": "q07",
+      "type": "single_passage",
+      "question": "What was the average latency of the middleware compared to the baseline, in the performance evaluation?",
+      "expected_snippets": ["baseline measurements averaged 3 ms per request, while the middleware configuration averaged 2 ms per request"],
+      "answer_must_include": ["3 ms", "2 ms"],
+      "notes": ""
+    },
+    {
+      "id": "q08",
+      "type": "single_passage",
+      "question": "In the CRDT gossip demonstration, what were the three nodes' local request counts before gossip convergence?",
+      "expected_snippets": ["Node 1 registered five requests, Node 2 registered three, and Node 3 registered six"],
+      "answer_must_include": ["five", "three", "six"],
+      "notes": ""
+    },
+    {
+      "id": "q09",
+      "type": "single_passage",
+      "question": "What was the aggregate total that all three nodes converged on after gossip synchronisation?",
+      "expected_snippets": ["aggregate total of 14 requests"],
+      "answer_must_include": ["14"],
+      "notes": ""
+    },
+    {
+      "id": "q10",
+      "type": "single_passage",
+      "question": "What counter divergence was observed in the distributed consistency evaluation, before convergence?",
+      "expected_snippets": ["observed divergence below 3% before convergence"],
+      "answer_must_include": ["3%"],
+      "notes": ""
+    },
+    {
+      "id": "q11",
+      "type": "single_passage",
+      "question": "What blocking rate did the middleware achieve against malicious/anomalous traffic, according to the discussion of results?",
+      "expected_snippets": ["blocking rates consistently above 95% across scenarios"],
+      "answer_must_include": ["95%"],
+      "notes": ""
+    },
+    {
+      "id": "q12",
+      "type": "single_passage",
+      "question": "What limitation did the author identify about the realism of the experimental evaluation?",
+      "expected_snippets": ["Tests were carried out on a local development machine, with synthetic clients (Postman) rather than real-world workloads"],
+      "answer_must_include": ["Postman", "local development machine"],
+      "notes": ""
+    },
+    {
+      "id": "q13",
+      "type": "multi_passage",
+      "question": "What blocking rate for malicious traffic and what counter-divergence tolerance did the middleware achieve, according to the discussion of results?",
+      "expected_snippets": [
+        "blocking rates consistently above 95% across scenarios",
+        "observed divergence below 3% before convergence"
+      ],
+      "answer_must_include": ["95%", "3%"],
+      "notes": "Two separate results within Section 5.1, reported in different chunks."
+    },
+    {
+      "id": "q14",
+      "type": "multi_passage",
+      "question": "What latency overhead target was set as a design requirement, and what was the actual measured average middleware latency?",
+      "expected_snippets": [
+        "Performance overhead was capped at below 5% relative to a baseline system",
+        "baseline measurements averaged 3 ms per request, while the middleware configuration averaged 2 ms per request"
+      ],
+      "answer_must_include": ["5%", "2 ms"],
+      "notes": "Requirement (Section 4.2) + measured result (Section 5.1)."
+    },
+    {
+      "id": "q15",
+      "type": "multi_passage",
+      "question": "Which distributed-coordination technique did this project choose instead of a centralised datastore, and what were the node request counts it had to reconcile in the demonstration?",
+      "expected_snippets": [
+        "Conflict-Free Replicated Data Types (CRDTs) (Shapiro et al., 2011) - eventual consistency with deterministic merging and high fault tolerance",
+        "Node 1 registered five requests, Node 2 registered three, and Node 3 registered six"
+      ],
+      "answer_must_include": ["CRDT", "five"],
+      "notes": "Design decision (Section 3.2.4) + evaluation (Section 4.4.5)."
+    },
+    {
+      "id": "q16",
+      "type": "multi_passage",
+      "question": "What programming language/framework was chosen for the middleware, and which library implemented the anomaly detection model?",
+      "expected_snippets": [
+        "Java with Spring Boot was selected because it provides robust middleware interception (Filter API)",
+        "The Smile library was selected for its efficient implementation of Isolation Forest"
+      ],
+      "answer_must_include": ["Spring Boot", "Smile"],
+      "notes": "Two separate implementation-environment decisions in Section 3.3."
+    },
+    {
+      "id": "q17",
+      "type": "multi_passage",
+      "question": "What two contrasting Isolation Forest test scenarios were run, and how many requests were sent in each?",
+      "expected_snippets": [
+        "a normal traffic burst was simulated by sending 20 requests with a 1000 ms delay between them",
+        "an anomalous burst was simulated by sending 20 consecutive requests with no delay"
+      ],
+      "answer_must_include": ["1000 ms", "no delay"],
+      "notes": "Two scenarios within Section 4.4.4, in different chunks."
+    },
+    {
+      "id": "q18",
+      "type": "unanswerable",
+      "question": "What was the false positive rate of the Isolation Forest anomaly detector?",
+      "expected_snippets": [],
+      "answer_must_include": [],
+      "notes": "The dissertation discusses the false-positive/false-negative trade-off conceptually but never states a numeric false positive rate."
+    },
+    {
+      "id": "q19",
+      "type": "unanswerable",
+      "question": "How many total lines of code did the RateLimiter implementation contain?",
+      "expected_snippets": [],
+      "answer_must_include": [],
+      "notes": "The appendix lists the source files (RateLimiter.java, etc.) but never gives a line count."
+    },
+    {
+      "id": "q20",
+      "type": "unanswerable",
+      "question": "What was the monetary cost of running the distributed evaluation experiments?",
+      "expected_snippets": [],
+      "answer_must_include": [],
+      "notes": "The dissertation explicitly chose local Spring Boot instances over cloud infrastructure (AWS EC2/Kubernetes) specifically to avoid cost, but never states a dollar figure for anything."
+    }
+  ]
+}

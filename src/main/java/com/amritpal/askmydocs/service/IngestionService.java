@@ -1,9 +1,11 @@
 package com.amritpal.askmydocs.service;
 
+import com.amritpal.askmydocs.api.InvalidRequestException;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.reader.tika.TikaDocumentReader;
 import org.springframework.ai.transformer.splitter.TokenTextSplitter;
 import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.stereotype.Service;
 
@@ -12,33 +14,58 @@ import java.util.List;
 @Service
 public class IngestionService {
 
-    private final VectorStore vectorStore;
+    static final String SOURCE_METADATA_KEY = "source";
 
-    public IngestionService(VectorStore vectorStore) {
+    private final VectorStore vectorStore;
+    private final TokenTextSplitter splitter;
+
+    /**
+     * Chunk size is configuration, not a constant. It is the main lever on retrieval quality:
+     * chunks that are too large dilute the embedding and drag irrelevant text into the prompt,
+     * chunks that are too small lose the context that made the passage meaningful. The eval
+     * harness in {@code eval/} is how you find out which way to move it for a given corpus.
+     */
+    public IngestionService(VectorStore vectorStore,
+                            @Value("${app.rag.chunk-size:800}") int chunkSize,
+                            @Value("${app.rag.min-chunk-size-chars:350}") int minChunkSizeChars) {
         this.vectorStore = vectorStore;
+        this.splitter = new TokenTextSplitter(chunkSize, minChunkSizeChars, 5, 10_000, true);
     }
 
     /**
-     * Takes the raw bytes of an uploaded file (e.g. a PDF), and:
-     *   1. Extracts the plain text out of it (TikaDocumentReader handles PDF, DOCX, TXT, etc.)
-     *   2. Splits that text into smaller overlapping chunks (TokenTextSplitter) —
-     *      LLMs and embedding models work on chunks, not whole documents, because
-     *      a) embeddings are more accurate over focused chunks of text, and
-     *      b) you can only fit so much text into a prompt later at query time.
-     *   3. Sends each chunk to the VectorStore, which under the hood:
-     *      a) calls OpenAI's embedding model to turn the chunk's text into a vector
-     *      b) stores that vector + the original text in the Postgres pgvector table
+     * Extracts text from the uploaded bytes (Tika handles PDF, DOCX, TXT), splits it into
+     * chunks, tags each chunk with its source filename, and stores them — the vector store
+     * embeds each chunk on the way in.
+     *
+     * <p>The guards matter more than they look. Without them an empty upload or a file Tika
+     * can't parse produces zero chunks, {@code vectorStore.add} is called with an empty list,
+     * and the endpoint cheerfully returns 200 with {@code chunksStored: 0}. The user believes
+     * the document is searchable and every later question against it comes back empty.
+     * Failing loudly at ingest time is the whole point.
      */
     public int ingest(byte[] fileBytes, String filename) {
-        TikaDocumentReader reader = new TikaDocumentReader(new ByteArrayResource(fileBytes));
-        List<Document> rawDocuments = reader.get();
+        if (fileBytes == null || fileBytes.length == 0) {
+            throw new InvalidRequestException("Uploaded file '" + filename + "' is empty.");
+        }
 
-        TokenTextSplitter splitter = new TokenTextSplitter();
-        List<Document> chunks = splitter.apply(rawDocuments);
+        List<Document> rawDocuments;
+        try {
+            rawDocuments = new TikaDocumentReader(new ByteArrayResource(fileBytes)).get();
+        } catch (RuntimeException ex) {
+            throw new InvalidRequestException(
+                    "Could not extract text from '" + filename + "' — unsupported or corrupt file type.", ex);
+        }
 
-        // Tag each chunk with the source filename so we know where an answer came from later
-        chunks.forEach(chunk -> chunk.getMetadata().put("source", filename));
+        List<Document> chunks = splitter.apply(rawDocuments).stream()
+                .filter(chunk -> chunk.getContent() != null && !chunk.getContent().isBlank())
+                .toList();
 
+        if (chunks.isEmpty()) {
+            throw new InvalidRequestException(
+                    "No extractable text found in '" + filename + "'. Scanned images need OCR first.");
+        }
+
+        chunks.forEach(chunk -> chunk.getMetadata().put(SOURCE_METADATA_KEY, filename));
         vectorStore.add(chunks);
 
         return chunks.size();

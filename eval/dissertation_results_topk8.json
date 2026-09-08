@@ -1,0 +1,225 @@
+{
+  "document": "/Users/amritpalsingh/Documents/240055726_MSc_Dissertation_Amritpal_Singh .pdf",
+  "results": [
+    {
+      "id": "q01",
+      "type": "single_passage",
+      "question": "What algorithm combination was chosen for the hybrid rate limiting engine?",
+      "answer": "The hybrid rate limiting engine integrates three complementary mechanisms: the sliding window policy, the token bucket, and the adaptive Isolation Forest model.",
+      "answered": true,
+      "retrieval_ok": false,
+      "answer_ok": true,
+      "top_similarity": 0.5964438319206238,
+      "manual": null
+    },
+    {
+      "id": "q02",
+      "type": "single_passage",
+      "question": "Why was Isolation Forest chosen for anomaly detection over supervised machine learning models?",
+      "answer": "Isolation Forest was chosen for anomaly detection over supervised machine learning models because it does not require labelled training data, which is impractical in this context. Additionally, it scales efficiently to large traffic volumes and has been shown effective in detecting rare or unusual patterns in high-dimensional network traffic.",
+      "answered": true,
+      "retrieval_ok": true,
+      "answer_ok": true,
+      "top_similarity": 0.6443215310573578,
+      "manual": null
+    },
+    {
+      "id": "q03",
+      "type": "single_passage",
+      "question": "What machine learning library was used to implement the Isolation Forest model?",
+      "answer": "I don't know.",
+      "answered": true,
+      "retrieval_ok": false,
+      "answer_ok": false,
+      "top_similarity": 0.5557812750339508,
+      "manual": null
+    },
+    {
+      "id": "q04",
+      "type": "single_passage",
+      "question": "In the functional correctness test, how many of six consecutive requests were accepted before one was blocked?",
+      "answer": "Five of the six consecutive requests were accepted before one was blocked.",
+      "answered": true,
+      "retrieval_ok": true,
+      "answer_ok": false,
+      "top_similarity": 0.6377862095832825,
+      "manual": null
+    },
+    {
+      "id": "q05",
+      "type": "single_passage",
+      "question": "What refill interval was the token bucket configured with in the burst-handling experiment?",
+      "answer": "The context does not specify the exact refill interval configured for the token bucket in the burst-handling experiment. Therefore, I don't know.",
+      "answered": true,
+      "retrieval_ok": false,
+      "answer_ok": false,
+      "top_similarity": 0.6839584708213806,
+      "manual": null
+    },
+    {
+      "id": "q06",
+      "type": "single_passage",
+      "question": "In the first Isolation Forest test scenario, how many requests were sent and with what delay between them?",
+      "answer": "In the first Isolation Forest test scenario, 20 requests were sent with a 1000 ms delay between them.",
+      "answered": true,
+      "retrieval_ok": true,
+      "answer_ok": true,
+      "top_similarity": 0.6481478810310364,
+      "manual": null
+    },
+    {
+      "id": "q07",
+      "type": "single_passage",
+      "question": "What was the average latency of the middleware compared to the baseline, in the performance evaluation?",
+      "answer": "The average latency of the middleware was 2 ms per request, compared to the baseline, which averaged 3 ms per request.",
+      "answered": true,
+      "retrieval_ok": true,
+      "answer_ok": true,
+      "top_similarity": 0.6899548172950745,
+      "manual": null
+    },
+    {
+      "id": "q08",
+      "type": "single_passage",
+      "question": "In the CRDT gossip demonstration, what were the three nodes' local request counts before gossip convergence?",
+      "answer": "Before gossip convergence, the three nodes' local request counts were: Node 1 = 5, Node 2 = 3, and Node 3 = 6.",
+      "answered": true,
+      "retrieval_ok": true,
+      "answer_ok": false,
+      "top_similarity": 0.7946174442768097,
+      "manual": null
+    },
+    {
+      "id": "q09",
+      "type": "single_passage",
+      "question": "What was the aggregate total that all three nodes converged on after gossip synchronisation?",
+      "answer": "The aggregate total that all three nodes converged on after gossip synchronisation was 14 requests.",
+      "answered": true,
+      "retrieval_ok": true,
+      "answer_ok": true,
+      "top_similarity": 0.6821756362915039,
+      "manual": null
+    },
+    {
+      "id": "q10",
+      "type": "single_passage",
+      "question": "What counter divergence was observed in the distributed consistency evaluation, before convergence?",
+      "answer": "The observed divergence was below 3% before convergence.",
+      "answered": true,
+      "retrieval_ok": true,
+      "answer_ok": true,
+      "top_similarity": 0.5886029303073883,
+      "manual": null
+    },
+    {
+      "id": "q11",
+      "type": "single_passage",
+      "question": "What blocking rate did the middleware achieve against malicious/anomalous traffic, according to the discussion of results?",
+      "answer": "The middleware achieved blocking rates consistently above 95% against malicious/anomalous traffic.",
+      "answered": true,
+      "retrieval_ok": true,
+      "answer_ok": true,
+      "top_similarity": 0.6977638602256775,
+      "manual": null
+    },
+    {
+      "id": "q12",
+      "type": "single_passage",
+      "question": "What limitation did the author identify about the realism of the experimental evaluation?",
+      "answer": "The author identified that the experiments were run on a local development machine using synthetic clients (Postman) rather than real-world workloads. This means that network delays, heterogeneous devices, and large-scale distributed deployments were not simulated, which limits the realism of the experimental evaluation.",
+      "answered": true,
+      "retrieval_ok": true,
+      "answer_ok": true,
+      "top_similarity": 0.4482962489128113,
+      "manual": null
+    },
+    {
+      "id": "q13",
+      "type": "multi_passage",
+      "question": "What blocking rate for malicious traffic and what counter-divergence tolerance did the middleware achieve, according to the discussion of results?",
+      "answer": "The middleware achieved a blocking rate of \u226595% for malicious traffic and a counter-divergence tolerance of \u22643%.",
+      "answered": true,
+      "retrieval_ok": false,
+      "answer_ok": true,
+      "top_similarity": 0.6402950882911682,
+      "manual": null
+    },
+    {
+      "id": "q14",
+      "type": "multi_passage",
+      "question": "What latency overhead target was set as a design requirement, and what was the actual measured average middleware latency?",
+      "answer": "The latency overhead target set as a design requirement was no more than 5% compared to baseline tools. The actual measured average middleware latency was 2 ms per request.",
+      "answered": true,
+      "retrieval_ok": true,
+      "answer_ok": true,
+      "top_similarity": 0.6192615628242493,
+      "manual": null
+    },
+    {
+      "id": "q15",
+      "type": "multi_passage",
+      "question": "Which distributed-coordination technique did this project choose instead of a centralised datastore, and what were the node request counts it had to reconcile in the demonstration?",
+      "answer": "The project chose to use PN-CRDT counters and a lightweight gossip protocol instead of a centralised datastore. The node request counts that had to be reconciled in the demonstration were: Node 1 registered five requests, Node 2 registered three requests, and Node 3 registered six requests, resulting in a total of 14 requests after reconciliation.",
+      "answered": true,
+      "retrieval_ok": false,
+      "answer_ok": true,
+      "top_similarity": 0.6091974973678589,
+      "manual": null
+    },
+    {
+      "id": "q16",
+      "type": "multi_passage",
+      "question": "What programming language/framework was chosen for the middleware, and which library implemented the anomaly detection model?",
+      "answer": "The programming language/framework chosen for the middleware was Java with Spring Boot, and the library that implemented the anomaly detection model was the Smile library.",
+      "answered": true,
+      "retrieval_ok": true,
+      "answer_ok": true,
+      "top_similarity": 0.572632759809494,
+      "manual": null
+    },
+    {
+      "id": "q17",
+      "type": "multi_passage",
+      "question": "What two contrasting Isolation Forest test scenarios were run, and how many requests were sent in each?",
+      "answer": "The two contrasting Isolation Forest test scenarios were:\n\n1. The first scenario involved sending 20 requests with a 1000 ms delay between them.\n2. The second scenario involved sending 20 consecutive requests with no delay.",
+      "answered": true,
+      "retrieval_ok": true,
+      "answer_ok": true,
+      "top_similarity": 0.6437627375125885,
+      "manual": null
+    },
+    {
+      "id": "q18",
+      "type": "unanswerable",
+      "question": "What was the false positive rate of the Isolation Forest anomaly detector?",
+      "answer": "I don't know.",
+      "answered": true,
+      "retrieval_ok": null,
+      "answer_ok": true,
+      "top_similarity": 0.5690686702728271,
+      "manual": null
+    },
+    {
+      "id": "q19",
+      "type": "unanswerable",
+      "question": "How many total lines of code did the RateLimiter implementation contain?",
+      "answer": "I don't know.",
+      "answered": true,
+      "retrieval_ok": null,
+      "answer_ok": true,
+      "top_similarity": 0.6197023987770081,
+      "manual": null
+    },
+    {
+      "id": "q20",
+      "type": "unanswerable",
+      "question": "What was the monetary cost of running the distributed evaluation experiments?",
+      "answer": "I don't know.",
+      "answered": true,
+      "retrieval_ok": null,
+      "answer_ok": true,
+      "top_similarity": 0.4343273639678955,
+      "manual": null
+    }
+  ]
+}

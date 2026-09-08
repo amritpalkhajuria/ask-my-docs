@@ -32,6 +32,17 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+
+            <!-- Without this pin, Maven's nearest-wins resolution picks commons-compress
+                 1.24.0 from testcontainers (test scope) over the newer version poi-ooxml
+                 (pulled in transitively by the Tika reader) actually needs, which throws
+                 NoSuchMethodError on ZipArchiveInputStream.getNextEntry() at runtime for
+                 any .docx upload. Pin to a version with that method (>= 1.25.0). -->
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-compress</artifactId>
+                <version>1.26.2</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -69,6 +80,24 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Testcontainers: spins up real Postgres + pgvector for the integration test.
+             Versions are managed by the Spring Boot parent, so none are pinned here. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-testcontainers</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>postgresql</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

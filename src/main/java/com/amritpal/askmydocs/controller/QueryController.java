@@ -1,11 +1,11 @@
 package com.amritpal.askmydocs.controller;
 
+import com.amritpal.askmydocs.api.AskRequest;
+import com.amritpal.askmydocs.api.AskResponse;
 import com.amritpal.askmydocs.service.QueryService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Map;
 
 @RestController
 public class QueryController {
@@ -23,9 +23,7 @@ public class QueryController {
      *     -d '{"question": "What experience does this candidate have with Kafka?"}'
      */
     @PostMapping("/ask")
-    public Map<String, String> ask(@RequestBody Map<String, String> body) {
-        String question = body.get("question");
-        String answer = queryService.ask(question);
-        return Map.of("question", question, "answer", answer);
+    public AskResponse ask(@RequestBody AskRequest request) {
+        return queryService.ask(request.requireQuestion());
     }
 }

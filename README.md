@@ -1,5 +1,7 @@
 # Ask My Docs — RAG Q&A API (Spring Boot + Spring AI)
 
+[![CI](https://github.com/amritpalkhajuria/ask-my-docs/actions/workflows/ci.yml/badge.svg)](https://github.com/amritpalkhajuria/ask-my-docs/actions/workflows/ci.yml)
+
 A backend service that lets you upload a document (PDF, DOCX, TXT) and ask
 natural-language questions about it. Answers are grounded in the document's
 actual content via Retrieval-Augmented Generation (RAG), not just the LLM's
@@ -72,6 +74,27 @@ curl -X POST http://localhost:8080/ask \
   -H "Content-Type: application/json" \
   -d '{"question": "What experience does this candidate have with Kafka?"}'
 ```
+
+## Testing
+
+24 tests across 5 classes, run with `mvn test`:
+
+- **`QueryServiceTest`** (5) — the enforced refusal path (no chunk above `similarity-threshold`
+  means the LLM is never called), top-k/threshold wiring, and that a blank question is
+  rejected as a 400 rather than reaching the model.
+- **`IngestionServiceTest`** (5) — chunk counts against the splitter's real behavior, plus
+  empty-file and unreadable-file rejection.
+- **`DocumentControllerTest`** (5) — multipart upload handling, including the non-multipart
+  POST and oversized-file edge cases.
+- **`QueryControllerTest`** (5) — request validation and error-response shape.
+- **`RagIntegrationTest`** (4) — the only test touching a real database: spins up Postgres +
+  pgvector via Testcontainers and exercises the full ingest → embed → store →
+  similarity-search path. Uses `HashingEmbeddingModel` (`support/HashingEmbeddingModel.java`),
+  a deterministic offline stand-in for the OpenAI embedding model, so it needs Docker but no
+  API key or network access.
+
+No test calls a paid API — unit tests mock the LLM, and the integration test's embedding
+model is fully offline. This is what the CI badge above reflects.
 
 ## Evaluation
 
@@ -206,6 +229,9 @@ This is a v1 focused on the core RAG loop end-to-end. Deliberately not
 included yet, to keep scope tight:
 
 - [ ] Hybrid search (keyword + vector) instead of pure similarity search
+- [ ] Whole-document summarization ("What is this document about?" isn't answerable by
+  top-k retrieval at all — no fixed set of chunks represents the whole document, so this
+  needs a map-reduce pass over every chunk, not a similarity search)
 - [ ] Observability — log token usage, latency, retrieval relevance per query
 - [ ] Multi-document filtering (currently searches across all ingested docs)
 - [ ] Auth on the endpoints

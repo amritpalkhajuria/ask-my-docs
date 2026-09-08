@@ -55,10 +55,10 @@ versus asking it cold.
 docker compose up -d
 
 # 2. Set your OpenAI API key
-export OPENAI_API_KEY=sk-...
+export OPENAI_API_KEY= your api key
 
 # 3. Run the app
-./mvnw spring-boot:run
+mvn spring-boot:run
 ```
 
 **Upload a document:**
@@ -164,6 +164,42 @@ defeats pure single-vector similarity search regardless of tuning. That's the co
 two-document case for hybrid search (or a reranking step) on the roadmap below, rather
 than continuing to chase threshold/top-k values on a single corpus.
 
+## Sample output
+
+Tested end-to-end against my own CV, ingested via the `/documents` endpoint.
+
+**Query:**
+```bash
+curl -X POST http://localhost:8080/ask \
+  -H "Content-Type: application/json" \
+  -d '{"question": "What did this person do at UnitedHealth Group?"}'
+```
+
+**Response:**
+```json
+{
+  "question": "What did this person do at UnitedHealth Group?",
+  "answer": "At UnitedHealth Group, the person designed, developed, and maintained RESTful APIs in Java (Spring Boot) for a high-volume enterprise healthcare platform, reducing backend response times by 35%. They implemented OAuth2 authentication and authorization in Java (Spring Security) for over 500,000 users with full HIPAA compliance, gaining hands-on experience with access management and regulated data handling in production. They engineered Java backend services processing large-scale healthcare data pipelines, reducing downstream processing load by 75% through efficient service architecture. Additionally, they optimized SQL queries and redesigned database schemas with Hibernate/JPA for large datasets, reducing latency and improving data retrieval reliability. They also collaborated with cross-functional Agile teams to design, develop, test, and deploy maintainable backend services."
+}
+```
+
+**Query:**
+```bash
+curl -X POST http://localhost:8080/ask \
+  -H "Content-Type: application/json" \
+  -d '{"question": "What is their dissertation about?"}'
+```
+
+**Response:**
+```json
+{
+  "question": "What is their dissertation about?",
+  "answer": "Their dissertation is about designing and implementing a hybrid rate-limiting middleware in Java (Spring Boot) that combines Token Bucket, Sliding Window, and Isolation Forest anomaly detection to block malicious requests while tolerating legitimate traffic bursts."
+}
+```
+
+Both answers are grounded entirely in the ingested document — no hallucinated details, no generic LLM knowledge substituted in.
+
 ## Known limitations / roadmap
 
 This is a v1 focused on the core RAG loop end-to-end. Deliberately not
@@ -173,7 +209,7 @@ included yet, to keep scope tight:
 - [ ] Observability — log token usage, latency, retrieval relevance per query
 - [ ] Multi-document filtering (currently searches across all ingested docs)
 - [ ] Auth on the endpoints
-- [ ] Automated tests
+- [x] Automated tests
 
 ## What this demonstrates
 

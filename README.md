@@ -189,7 +189,9 @@ than continuing to chase threshold/top-k values on a single corpus.
 
 ## Sample output
 
-Tested end-to-end against my own CV, ingested via the `/documents` endpoint.
+Tested end-to-end against my own CV, ingested via the `/documents` endpoint. `retrieved`
+isn't decoration — it's the actual evidence for the answer, with a similarity score per
+chunk, which is what the eval harness above scores retrieval accuracy from.
 
 **Query:**
 ```bash
@@ -202,26 +204,31 @@ curl -X POST http://localhost:8080/ask \
 ```json
 {
   "question": "What did this person do at UnitedHealth Group?",
-  "answer": "At UnitedHealth Group, the person designed, developed, and maintained RESTful APIs in Java (Spring Boot) for a high-volume enterprise healthcare platform, reducing backend response times by 35%. They implemented OAuth2 authentication and authorization in Java (Spring Security) for over 500,000 users with full HIPAA compliance, gaining hands-on experience with access management and regulated data handling in production. They engineered Java backend services processing large-scale healthcare data pipelines, reducing downstream processing load by 75% through efficient service architecture. Additionally, they optimized SQL queries and redesigned database schemas with Hibernate/JPA for large datasets, reducing latency and improving data retrieval reliability. They also collaborated with cross-functional Agile teams to design, develop, test, and deploy maintainable backend services."
+  "answer": "This person optimized real-time data streaming and cross-system communication for millions of health records, reducing backend response times by 35% and achieving sub-second latency via decoupled Java Spring Boot microservices, secure REST APIs, and Apache Kafka. They engineered Apache Kafka event-driven data routing streams, reducing downstream server processing loads by 75% compared to legacy synchronous architectures. Additionally, they containerized and deployed core HC3 applications onto AWS using Docker, maintaining high availability across multi-region environments for 500,000+ active users, and accelerated code-to-production timelines through automated CI/CD pipelines with integrated testing for Java and Python microservices.",
+  "answered": true,
+  "retrieved": [
+    {
+      "source": "Amritpal_Singh_CV_md.docx",
+      "similarity": 0.562,
+      "text": "Software Engineer – UnitedHealth Group (Optum) | India ... Optimized real-time data streaming and cross-system communication for millions of health records, reducing backend response times by 35% and achieving sub-second latency via decoupled Java Spring Boot microservices, secure REST APIs, and Apache Kafka. ..."
+    },
+    {
+      "source": "Amritpal_Singh_CV_md.docx",
+      "similarity": 0.391,
+      "text": "Amritpal Singh ... Java backend engineer with 3 years of production experience building REST APIs, microservices and event-driven data services on a regulated healthcare platform at UnitedHealth Group (Optum), serving 500,000+ users. ..."
+    },
+    {
+      "source": "Amritpal_Singh_CV_md.docx",
+      "similarity": 0.351,
+      "text": "Safeguarded data integrity and access security for downstream systems like Advocate4Me ... ENGINEERING PROJECTS Technical Assessment Platform ..."
+    }
+  ]
 }
 ```
 
-**Query:**
-```bash
-curl -X POST http://localhost:8080/ask \
-  -H "Content-Type: application/json" \
-  -d '{"question": "What is their dissertation about?"}'
-```
-
-**Response:**
-```json
-{
-  "question": "What is their dissertation about?",
-  "answer": "Their dissertation is about designing and implementing a hybrid rate-limiting middleware in Java (Spring Boot) that combines Token Bucket, Sliding Window, and Isolation Forest anomaly detection to block malicious requests while tolerating legitimate traffic bursts."
-}
-```
-
-Both answers are grounded entirely in the ingested document — no hallucinated details, no generic LLM knowledge substituted in.
+Three chunks cleared `similarity-threshold: 0.35` and were fed to the LLM as context — the
+third barely, at 0.351. Nothing below that line reaches the model; that's the refusal path
+from the Evaluation section above, visible in a live response instead of just asserted.
 
 ## Known limitations / roadmap
 

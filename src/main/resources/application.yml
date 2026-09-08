@@ -2,6 +2,13 @@ spring:
   application:
     name: ask-my-docs
 
+  # Spring Boot defaults to a 1MB max upload, which rejects almost any real PDF/DOCX
+  # (a 72-page dissertation is ~3MB). Raised to fit the documents this API exists to ingest.
+  servlet:
+    multipart:
+      max-file-size: 25MB
+      max-request-size: 25MB
+
   # Connection to the Postgres container started by docker-compose
   datasource:
     url: jdbc:postgresql://localhost:5433/ask_my_docs
@@ -27,6 +34,29 @@ spring:
         dimensions: 1536
         # Lets Spring AI auto-create the vector_store table + pgvector extension on startup
         initialize-schema: true
+
+# RAG tuning knobs. These are the levers the eval harness measures, so they live in
+# config rather than being buried in the services.
+app:
+  rag:
+    # Chunk size in tokens. Smaller chunks give sharper embeddings but lose surrounding
+    # context; larger chunks do the reverse. 800 is the Spring AI default, but eval/ on a
+    # one-page CV (a few hundred words) showed 800 collapses the whole document into 1-2
+    # chunks, so every query embeds against the same broad blob and similarity scores stop
+    # discriminating between in-scope and out-of-scope questions. Lowered for this corpus size.
+    chunk-size: 150
+    min-chunk-size-chars: 100
+    # How many chunks to feed the model as context. 4 was fine for a 7-chunk CV (>50%
+    # of the document every query) but on the 199-chunk dissertation it retrieves ~2% of
+    # the document per query, and this document repeats the same concepts (token bucket,
+    # Isolation Forest, CRDT) across chapters, so similarly-worded chunks from the wrong
+    # chapter compete for the top slots. Raised for corpora with many chunks.
+    top-k: 8
+    # Minimum cosine similarity (1 - distance) for a chunk to be used at all. Below this,
+    # the service declines instead of asking the LLM to answer from irrelevant context.
+    # Calibrate from `python3 eval/run_eval.py`, which prints the similarity distribution
+    # for answerable vs. unanswerable questions.
+    similarity-threshold: 0.35
 
 server:
   port: 8080

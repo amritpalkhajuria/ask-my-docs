@@ -1,0 +1,181 @@
+{
+  "document": "/Users/amritpalsingh/Downloads/Amritpal_Singh_CV_md.docx",
+  "notes": "Ingest exactly this one document into a clean vector store before running the harness, otherwise chunks from other documents compete in the similarity search and the numbers mean nothing. 20 questions: 12 single_passage, 5 multi_passage, 3 unanswerable, against the real CV.",
+  "questions": [
+    {
+      "id": "q01",
+      "type": "single_passage",
+      "question": "What did this person do at UnitedHealth Group?",
+      "expected_snippets": ["reducing backend response times by 35%"],
+      "answer_must_include": ["Spring Boot", "REST"],
+      "notes": ""
+    },
+    {
+      "id": "q02",
+      "type": "single_passage",
+      "question": "What is their MSc dissertation about?",
+      "expected_snippets": ["Token Bucket, Sliding Window and Isolation Forest anomaly detection"],
+      "answer_must_include": ["Token Bucket", "Isolation Forest"],
+      "notes": ""
+    },
+    {
+      "id": "q03",
+      "type": "single_passage",
+      "question": "What GitHub repository hosts the Ask My Docs project?",
+      "expected_snippets": ["github.com/amritpalkhajuria/ask-my-docs"],
+      "answer_must_include": ["ask-my-docs"],
+      "notes": ""
+    },
+    {
+      "id": "q04",
+      "type": "single_passage",
+      "question": "By what percentage did the Apache Kafka event-driven data routing reduce downstream server processing loads?",
+      "expected_snippets": ["reducing downstream server processing loads by 75%"],
+      "answer_must_include": ["75%"],
+      "notes": ""
+    },
+    {
+      "id": "q05",
+      "type": "single_passage",
+      "question": "What percentage mark did they receive on their MSc dissertation?",
+      "expected_snippets": ["Dissertation: Distinction (78%)"],
+      "answer_must_include": ["Distinction", "78%"],
+      "notes": ""
+    },
+    {
+      "id": "q06",
+      "type": "single_passage",
+      "question": "What percentage of malicious requests did the rate-limiting middleware block in testing?",
+      "expected_snippets": ["blocked over 95% of malicious requests in testing"],
+      "answer_must_include": ["95%"],
+      "notes": ""
+    },
+    {
+      "id": "q07",
+      "type": "single_passage",
+      "question": "What is this person's current customer-facing job title, alongside their backend engineering work?",
+      "expected_snippets": ["Assistant Manager"],
+      "answer_must_include": ["Assistant Manager", "Nespresso"],
+      "notes": ""
+    },
+    {
+      "id": "q08",
+      "type": "single_passage",
+      "question": "What database and ORM-related technologies are listed under their Databases skills?",
+      "expected_snippets": ["PostgreSQL, MySQL, MongoDB, Hibernate/JPA, Liquibase"],
+      "answer_must_include": ["PostgreSQL", "MongoDB"],
+      "notes": ""
+    },
+    {
+      "id": "q09",
+      "type": "single_passage",
+      "question": "What AI-related skills and tools does this person list?",
+      "expected_snippets": ["OpenAI API (embeddings, chat completions), RAG pipelines, pgvector"],
+      "answer_must_include": ["Spring AI", "pgvector"],
+      "notes": ""
+    },
+    {
+      "id": "q10",
+      "type": "single_passage",
+      "question": "Which institute did they attend for their BTech, and with what result?",
+      "expected_snippets": ["NIT Srinagar"],
+      "answer_must_include": ["NIT Srinagar", "Distinction"],
+      "notes": ""
+    },
+    {
+      "id": "q11",
+      "type": "single_passage",
+      "question": "What does the Technical Assessment Platform project do?",
+      "expected_snippets": ["blueprint-driven engine that generates assessments dynamically"],
+      "answer_must_include": ["Spring Boot", "recruitment platform"],
+      "notes": ""
+    },
+    {
+      "id": "q12",
+      "type": "single_passage",
+      "question": "What did they design for the Technical Assessment Platform's database, and how many tables does it have?",
+      "expected_snippets": ["normalised PostgreSQL schema of 15+ tables"],
+      "answer_must_include": ["PostgreSQL", "15"],
+      "notes": ""
+    },
+    {
+      "id": "q13",
+      "type": "multi_passage",
+      "question": "Which technologies has this person used for both authentication and rate-limiting?",
+      "expected_snippets": [
+        "OAuth2 authentication via Spring Security",
+        "Token Bucket, Sliding Window and Isolation Forest anomaly detection"
+      ],
+      "answer_must_include": ["OAuth2", "Token Bucket"],
+      "notes": "UHG bullet (auth) + dissertation bullet (rate-limiting). Retrieval counts as correct only if BOTH snippets appear across the retrieved chunks."
+    },
+    {
+      "id": "q14",
+      "type": "multi_passage",
+      "question": "Which containerization technology did this person use both at UnitedHealth Group and in the Ask My Docs project?",
+      "expected_snippets": [
+        "Containerized and deployed core HC3 applications onto AWS using Docker",
+        "Docker Compose for local infrastructure"
+      ],
+      "answer_must_include": ["Docker"],
+      "notes": "UHG bullet + Ask My Docs project bullet."
+    },
+    {
+      "id": "q15",
+      "type": "multi_passage",
+      "question": "What database technology did they use for SQL validation at UnitedHealth Group, and what specific PostgreSQL extension powers vector search in the Ask My Docs project?",
+      "expected_snippets": [
+        "optimizing complex SQL validation schemas and Hibernate/JPA setups",
+        "vector retrieval on PostgreSQL with pgvector using cosine similarity"
+      ],
+      "answer_must_include": ["SQL", "pgvector"],
+      "notes": "UHG bullet + Ask My Docs project bullet."
+    },
+    {
+      "id": "q16",
+      "type": "multi_passage",
+      "question": "What testing practice did they apply at UnitedHealth Group, and how many requests did they use to load-test the rate-limiting middleware in their dissertation?",
+      "expected_snippets": [
+        "automated CI/CD pipelines with integrated testing",
+        "Load-tested the pipeline across 500 requests"
+      ],
+      "answer_must_include": ["CI/CD", "500 requests"],
+      "notes": "UHG bullet + dissertation bullet."
+    },
+    {
+      "id": "q17",
+      "type": "multi_passage",
+      "question": "Which compliance requirement did they satisfy at UnitedHealth Group, and which university awarded their MSc?",
+      "expected_snippets": [
+        "satisfying strict HIPAA compliance requirements",
+        "University of London"
+      ],
+      "answer_must_include": ["HIPAA", "London"],
+      "notes": "UHG bullet + Education section."
+    },
+    {
+      "id": "q18",
+      "type": "unanswerable",
+      "question": "What was their salary at UnitedHealth Group?",
+      "expected_snippets": [],
+      "answer_must_include": [],
+      "notes": "Adjacent to content that exists (the UHG role) but never stated. Catches confabulation."
+    },
+    {
+      "id": "q19",
+      "type": "unanswerable",
+      "question": "What is the retention period for candidate data in the Technical Assessment Platform?",
+      "expected_snippets": [],
+      "answer_must_include": [],
+      "notes": "The project bullet covers the platform's schema and workflows but never states a data retention policy."
+    },
+    {
+      "id": "q20",
+      "type": "unanswerable",
+      "question": "What response time did the Ask My Docs RAG API achieve under load testing?",
+      "expected_snippets": [],
+      "answer_must_include": [],
+      "notes": "The '2-3ms average response time' figure belongs to the rate-limiting dissertation project, not Ask My Docs, which reports no load-test numbers. Tests whether the system blends facts across projects."
+    }
+  ]
+}

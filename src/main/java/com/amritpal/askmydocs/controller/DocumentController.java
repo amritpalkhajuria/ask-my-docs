@@ -24,12 +24,12 @@ public class DocumentController {
      */
     @PostMapping("/documents")
     public Map<String, Object> uploadDocument(@RequestParam("file") MultipartFile file) throws IOException {
-        int chunkCount = ingestionService.ingest(file.getBytes(), file.getOriginalFilename());
+        String filename = file.getOriginalFilename() == null ? "unnamed" : file.getOriginalFilename();
+        int chunkCount = ingestionService.ingest(file.getBytes(), filename);
 
         return Map.of(
-                "filename", file.getOriginalFilename(),
+                "filename", filename,
                 "chunksStored", chunkCount,
-                "status", "ingested"
-        );
+                "status", "ingested");
     }
 }

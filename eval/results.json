@@ -1,0 +1,225 @@
+{
+  "document": "/Users/amritpalsingh/Downloads/Amritpal_Singh_CV_md.docx",
+  "results": [
+    {
+      "id": "q01",
+      "type": "single_passage",
+      "question": "What did this person do at UnitedHealth Group?",
+      "answer": "At UnitedHealth Group (Optum), this person optimized real-time data streaming and cross-system communication for millions of health records, reducing backend response times by 35% and achieving sub-second latency through decoupled Java Spring Boot microservices, secure REST APIs, and Apache Kafka. They engineered Apache Kafka event-driven data routing streams, reducing downstream server processing loads by 75% compared to legacy synchronous architectures. Additionally, they containerized and deployed core HC3 applications onto AWS using Docker, maintained high availability across multi-region environments for over 500,000 active users, and accelerated code-to-production timelines through automated CI/CD pipelines with integrated testing for Java and Python microservices.",
+      "answered": true,
+      "retrieval_ok": true,
+      "answer_ok": true,
+      "top_similarity": 0.5622432231903076,
+      "manual": null
+    },
+    {
+      "id": "q02",
+      "type": "single_passage",
+      "question": "What is their MSc dissertation about?",
+      "answer": "I don't know \u2014 nothing in the ingested documents is relevant to that question.",
+      "answered": false,
+      "retrieval_ok": false,
+      "answer_ok": false,
+      "top_similarity": null,
+      "manual": null
+    },
+    {
+      "id": "q03",
+      "type": "single_passage",
+      "question": "What GitHub repository hosts the Ask My Docs project?",
+      "answer": "The Ask My Docs project is hosted on GitHub at the repository: github.com/amritpalkhajuria/ask-my-docs.",
+      "answered": true,
+      "retrieval_ok": true,
+      "answer_ok": true,
+      "top_similarity": 0.46505165100097656,
+      "manual": null
+    },
+    {
+      "id": "q04",
+      "type": "single_passage",
+      "question": "By what percentage did the Apache Kafka event-driven data routing reduce downstream server processing loads?",
+      "answer": "The Apache Kafka event-driven data routing reduced downstream server processing loads by 75%.",
+      "answered": true,
+      "retrieval_ok": true,
+      "answer_ok": true,
+      "top_similarity": 0.4226524829864502,
+      "manual": null
+    },
+    {
+      "id": "q05",
+      "type": "single_passage",
+      "question": "What percentage mark did they receive on their MSc dissertation?",
+      "answer": "I don't know \u2014 nothing in the ingested documents is relevant to that question.",
+      "answered": false,
+      "retrieval_ok": false,
+      "answer_ok": false,
+      "top_similarity": null,
+      "manual": null
+    },
+    {
+      "id": "q06",
+      "type": "single_passage",
+      "question": "What percentage of malicious requests did the rate-limiting middleware block in testing?",
+      "answer": "The rate-limiting middleware blocked over 95% of malicious requests in testing.",
+      "answered": true,
+      "retrieval_ok": true,
+      "answer_ok": true,
+      "top_similarity": 0.5012476742267609,
+      "manual": null
+    },
+    {
+      "id": "q07",
+      "type": "single_passage",
+      "question": "What is this person's current customer-facing job title, alongside their backend engineering work?",
+      "answer": "The person's current customer-facing job title is Assistant Manager.",
+      "answered": true,
+      "retrieval_ok": true,
+      "answer_ok": false,
+      "top_similarity": 0.5123095810413361,
+      "manual": null
+    },
+    {
+      "id": "q08",
+      "type": "single_passage",
+      "question": "What database and ORM-related technologies are listed under their Databases skills?",
+      "answer": "The database and ORM-related technologies listed under their Databases skills are PostgreSQL, MySQL, MongoDB, Hibernate/JPA, and Liquibase.",
+      "answered": true,
+      "retrieval_ok": true,
+      "answer_ok": true,
+      "top_similarity": 0.4852917194366455,
+      "manual": null
+    },
+    {
+      "id": "q09",
+      "type": "single_passage",
+      "question": "What AI-related skills and tools does this person list?",
+      "answer": "The AI-related skills and tools listed are Spring AI, OpenAI API (embeddings, chat completions), RAG pipelines, and pgvector.",
+      "answered": true,
+      "retrieval_ok": true,
+      "answer_ok": true,
+      "top_similarity": 0.5031262934207916,
+      "manual": null
+    },
+    {
+      "id": "q10",
+      "type": "single_passage",
+      "question": "Which institute did they attend for their BTech, and with what result?",
+      "answer": "I don't know \u2014 nothing in the ingested documents is relevant to that question.",
+      "answered": false,
+      "retrieval_ok": false,
+      "answer_ok": false,
+      "top_similarity": null,
+      "manual": null
+    },
+    {
+      "id": "q11",
+      "type": "single_passage",
+      "question": "What does the Technical Assessment Platform project do?",
+      "answer": "The Technical Assessment Platform project is a Spring Boot recruitment platform that includes role-based access control, candidate evaluation workflows, and a blueprint-driven engine that generates assessments dynamically from configurable question categories, difficulty levels, and question counts.",
+      "answered": true,
+      "retrieval_ok": true,
+      "answer_ok": true,
+      "top_similarity": 0.4675862193107605,
+      "manual": null
+    },
+    {
+      "id": "q12",
+      "type": "single_passage",
+      "question": "What did they design for the Technical Assessment Platform's database, and how many tables does it have?",
+      "answer": "They designed a normalized PostgreSQL schema of 15+ tables using Hibernate/JPA for the Technical Assessment Platform.",
+      "answered": true,
+      "retrieval_ok": true,
+      "answer_ok": true,
+      "top_similarity": 0.4490910768508911,
+      "manual": null
+    },
+    {
+      "id": "q13",
+      "type": "multi_passage",
+      "question": "Which technologies has this person used for both authentication and rate-limiting?",
+      "answer": "The person has used Spring Boot for both authentication (implementing OAuth2 authentication via Spring Security) and rate-limiting (building rate-limiting middleware in Java and Spring Boot).",
+      "answered": true,
+      "retrieval_ok": true,
+      "answer_ok": false,
+      "top_similarity": 0.5852006375789642,
+      "manual": null
+    },
+    {
+      "id": "q14",
+      "type": "multi_passage",
+      "question": "Which containerization technology did this person use both at UnitedHealth Group and in the Ask My Docs project?",
+      "answer": "Docker",
+      "answered": true,
+      "retrieval_ok": true,
+      "answer_ok": true,
+      "top_similarity": 0.47138679027557373,
+      "manual": null
+    },
+    {
+      "id": "q15",
+      "type": "multi_passage",
+      "question": "What database technology did they use for SQL validation at UnitedHealth Group, and what specific PostgreSQL extension powers vector search in the Ask My Docs project?",
+      "answer": "The database technology used for SQL validation at UnitedHealth Group was PostgreSQL. The specific PostgreSQL extension that powers vector search in the Ask My Docs project is pgvector.",
+      "answered": true,
+      "retrieval_ok": true,
+      "answer_ok": true,
+      "top_similarity": 0.6293363273143768,
+      "manual": null
+    },
+    {
+      "id": "q16",
+      "type": "multi_passage",
+      "question": "What testing practice did they apply at UnitedHealth Group, and how many requests did they use to load-test the rate-limiting middleware in their dissertation?",
+      "answer": "At UnitedHealth Group, they applied load-testing practices to measure performance. They load-tested the rate-limiting middleware across 500 requests in their dissertation.",
+      "answered": true,
+      "retrieval_ok": true,
+      "answer_ok": false,
+      "top_similarity": 0.5340042114257812,
+      "manual": null
+    },
+    {
+      "id": "q17",
+      "type": "multi_passage",
+      "question": "Which compliance requirement did they satisfy at UnitedHealth Group, and which university awarded their MSc?",
+      "answer": "The compliance requirement satisfied at UnitedHealth Group was HIPAA compliance. The context does not specify which university awarded their MSc.",
+      "answered": true,
+      "retrieval_ok": false,
+      "answer_ok": false,
+      "top_similarity": 0.45728325843811035,
+      "manual": null
+    },
+    {
+      "id": "q18",
+      "type": "unanswerable",
+      "question": "What was their salary at UnitedHealth Group?",
+      "answer": "I don't know.",
+      "answered": true,
+      "retrieval_ok": null,
+      "answer_ok": true,
+      "top_similarity": 0.46314412355422974,
+      "manual": null
+    },
+    {
+      "id": "q19",
+      "type": "unanswerable",
+      "question": "What is the retention period for candidate data in the Technical Assessment Platform?",
+      "answer": "I don't know.",
+      "answered": true,
+      "retrieval_ok": null,
+      "answer_ok": true,
+      "top_similarity": 0.4638357162475586,
+      "manual": null
+    },
+    {
+      "id": "q20",
+      "type": "unanswerable",
+      "question": "What response time did the Ask My Docs RAG API achieve under load testing?",
+      "answer": "The Ask My Docs RAG API achieved a 2\u20133 ms average response time under load testing.",
+      "answered": true,
+      "retrieval_ok": null,
+      "answer_ok": false,
+      "top_similarity": 0.4397881031036377,
+      "manual": null
+    }
+  ]
+}

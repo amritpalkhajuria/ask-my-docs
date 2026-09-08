@@ -73,6 +73,97 @@ curl -X POST http://localhost:8080/ask \
   -d '{"question": "What experience does this candidate have with Kafka?"}'
 ```
 
+## Evaluation
+
+`eval/run_eval.py` runs a fixed 20-question set (12 single-passage, 5 multi-passage, 3
+unanswerable) against a single ingested document — my own CV — and scores retrieval
+accuracy, answer correctness, and refusal rate. Full methodology in the script's docstring.
+
+**Run 1 — baseline** (`chunk-size: 800`, the Spring AI default, `similarity-threshold: 0.35`):
+
+| Metric | Result |
+| --- | --- |
+| Retrieval accuracy (n=17) | 59% |
+| Answer correctness (n=17) | 47% |
+| Out-of-scope questions correctly declined | 3 of 3 |
+
+A one-page CV is only a few hundred words, so at `chunk-size: 800` the whole document
+collapsed into 2 chunks. Every query — however narrow — was embedded against the same one
+or two broad blobs, which is why retrieval and answer correctness were both weak.
+
+**Run 2 — smaller chunks** (`chunk-size: 150`, `similarity-threshold: 0.35` unchanged):
+
+| Metric | Result |
+| --- | --- |
+| Retrieval accuracy (n=17) | 76% |
+| Answer correctness (n=17) | 59% |
+| Out-of-scope questions correctly declined | 2 of 3 |
+
+Shrinking the chunk size to fit the corpus improved retrieval (+17pp) and answer
+correctness (+12pp) — the chunks now separate topics (a job, a project, an education
+entry) instead of blending them. But declines went *down*, 3/3 → 2/3: the previously
+"correct" refusals were never actually enforced by `app.rag.similarity-threshold` — all
+three unanswerable questions scored 0.44–0.46 similarity, comfortably above the 0.35 cutoff,
+so the system retrieved real context for every one of them and simply relied on the LLM to
+say "I don't know" on its own. With more granular, more topically-distinct chunks, that
+LLM-level honesty broke on one case: asked for the Ask My Docs project's load-test response
+time (a figure that doesn't exist for that project), it retrieved the dissertation project's
+"2–3 ms" figure from a nearby chunk and confabulated an answer by attributing it to the
+wrong project.
+
+**Why the threshold isn't tuned further:** sorting all 20 questions by top-chunk similarity
+shows the three unanswerable questions (0.440, 0.463, 0.464) sitting *inside* the answerable
+range (0.423–0.629), not below it — e.g. one legitimately-answerable question scored 0.423,
+lower than all three unanswerable ones. No single cutoff separates the groups; moving the
+threshold up enough to catch the unanswerable questions also starts refusing real ones. This
+is the overlap case `run_eval.py` warns about: a retrieval-quality limitation of pure
+single-vector cosine similarity on a short, topically-dense document, not something a
+threshold value can fix. It's the concrete evidence behind the hybrid search item below.
+
+### Generalizing to a larger document
+
+The config above (`chunk-size: 150`) was tuned against a one-page CV. To check it
+generalizes, I re-ran the same eval methodology against a 72-page MSc dissertation
+(a separate 20-question set in `eval/dissertation_questions.json`, same 12/5/3 split,
+snippets verified against the actual ingested chunks) in a clean, single-document store.
+
+**Run 1 — same config as the CV** (`chunk-size: 150`, `top-k: 4`):
+
+| Metric | Result |
+| --- | --- |
+| Retrieval accuracy (n=17) | 59% |
+| Answer correctness (n=17) | 71% |
+| Out-of-scope questions correctly declined | 3 of 3 |
+
+Retrieval was noticeably worse than on the CV. The reason: `top-k: 4` retrieves >50% of
+a 7-chunk CV every query, but only ~2% of this document's 199 chunks. A 72-page
+dissertation also repeats its core concepts (token bucket, Isolation Forest, CRDT) across
+the Background, Methods, Results, and Discussion chapters, so several similarly-worded
+chunks from the *wrong* chapter compete for the top-4 slots ahead of the one chunk that
+actually has the specific fact asked.
+
+**Run 2 — raised top-k** (`chunk-size: 150`, `top-k: 8`):
+
+| Metric | Result |
+| --- | --- |
+| Retrieval accuracy (n=17) | 71% |
+| Answer correctness (n=17) | 76% |
+| Out-of-scope questions correctly declined | 3 of 3 |
+
+Raising `top-k` recovered most of the gap (retrieval +12pp, answer correctness +5pp) by
+giving the correct chunk more chances to be included even when it isn't ranked first. But
+5 of the 20 questions still missed retrieval even at `top-k: 8` out of 199 chunks — for
+those, the correct chunk isn't in the top 8 by cosine similarity at all, which `top-k` can't
+fix by itself. The similarity-overlap problem from the CV run also persists unchanged here
+(unanswerable questions scored up to 0.620, above the 0.448 minimum for answerable ones),
+exactly as expected since `top-k` doesn't touch individual chunk similarity scores.
+
+**Takeaway:** `chunk-size` and `top-k` both need to scale with corpus size, and neither
+fixes the deeper problem — a document that discusses the same concept in multiple chapters
+defeats pure single-vector similarity search regardless of tuning. That's the concrete,
+two-document case for hybrid search (or a reranking step) on the roadmap below, rather
+than continuing to chase threshold/top-k values on a single corpus.
+
 ## Known limitations / roadmap
 
 This is a v1 focused on the core RAG loop end-to-end. Deliberately not

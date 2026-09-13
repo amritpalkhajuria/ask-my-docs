@@ -89,7 +89,7 @@ curl -X POST http://localhost:8080/ask \
 
 ## Testing
 
-28 tests across 5 classes, run with `mvn test`:
+26 tests across 5 classes, run with `mvn test`:
 
 - **`QueryServiceTest`** (5) — the enforced refusal path (no chunk above `similarity-threshold`
   means the LLM is never called), top-k/threshold wiring, and that a blank question is
@@ -100,7 +100,7 @@ curl -X POST http://localhost:8080/ask \
   POST and oversized-file edge cases, plus `ApiKeyFilter` rejecting missing/wrong keys.
 - **`QueryControllerTest`** (7) — request validation, error-response shape, and `ApiKeyFilter`
   rejecting missing/wrong keys.
-- **`RagIntegrationTest`** (4) — the only test touching a real database: spins up Postgres +
+- **`RagIntegrationTest`** (2) — the only test touching a real database: spins up Postgres +
   pgvector via Testcontainers and exercises the full ingest → embed → store →
   similarity-search path. Uses `HashingEmbeddingModel` (`support/HashingEmbeddingModel.java`),
   a deterministic offline stand-in for the OpenAI embedding model, so it needs Docker but no

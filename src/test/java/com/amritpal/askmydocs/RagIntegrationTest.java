@@ -60,6 +60,8 @@ class RagIntegrationTest {
     static void openAiProperties(DynamicPropertyRegistry registry) {
         // The OpenAI auto-configuration needs a key present to start; nothing here calls out.
         registry.add("spring.ai.openai.api-key", () -> "test-key-not-used");
+        // ApiKeyFilter needs app.api-key present to start; this test never goes through HTTP.
+        registry.add("app.api-key", () -> "test-key-not-used");
     }
 
     @TestConfiguration

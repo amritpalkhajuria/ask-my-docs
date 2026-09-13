@@ -9,6 +9,11 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    # Needed for the "Publish test report" step below to create a check run — the
+    # default GITHUB_TOKEN is read-only, which is what made that step fail before.
+    permissions:
+      contents: read
+      checks: write
     # Docker is available on this runner, which is what the Testcontainers
     # integration test needs. No OpenAI key is required: the unit tests mock the
     # LLM and the integration test uses a deterministic offline embedding model,

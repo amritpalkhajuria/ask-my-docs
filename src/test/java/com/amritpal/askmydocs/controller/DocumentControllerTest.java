@@ -8,12 +8,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.nio.charset.StandardCharsets;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -21,7 +23,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(DocumentController.class)
+@TestPropertySource(properties = "app.api-key=test-key")
 class DocumentControllerTest {
+
+    private static final String API_KEY_HEADER = "X-API-Key";
+    private static final String API_KEY = "test-key";
 
     @Autowired
     private MockMvc mockMvc;
@@ -37,7 +43,7 @@ class DocumentControllerTest {
         MockMultipartFile file = new MockMultipartFile(
                 "file", "handbook.txt", "text/plain", "some readable text".getBytes(StandardCharsets.UTF_8));
 
-        mockMvc.perform(multipart("/documents").file(file))
+        mockMvc.perform(multipart("/documents").file(file).header(API_KEY_HEADER, API_KEY))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.filename").value("handbook.txt"))
                 .andExpect(jsonPath("$.chunksStored").value(7))
@@ -47,7 +53,7 @@ class DocumentControllerTest {
     @Test
     @DisplayName("request with no file part returns 400")
     void missingFileReturns400() throws Exception {
-        mockMvc.perform(multipart("/documents"))
+        mockMvc.perform(multipart("/documents").header(API_KEY_HEADER, API_KEY))
                 .andExpect(status().isBadRequest());
     }
 
@@ -59,7 +65,7 @@ class DocumentControllerTest {
 
         MockMultipartFile file = new MockMultipartFile("file", "empty.txt", "text/plain", new byte[0]);
 
-        mockMvc.perform(multipart("/documents").file(file))
+        mockMvc.perform(multipart("/documents").file(file).header(API_KEY_HEADER, API_KEY))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("bad_request"));
     }
@@ -73,14 +79,38 @@ class DocumentControllerTest {
         MockMultipartFile file = new MockMultipartFile(
                 "file", "scan.png", "image/png", new byte[] {0x1, 0x2, 0x3});
 
-        mockMvc.perform(multipart("/documents").file(file))
+        mockMvc.perform(multipart("/documents").file(file).header(API_KEY_HEADER, API_KEY))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     @DisplayName("a plain (non-multipart) POST returns 4xx rather than reaching the service")
     void nonMultipartPostIsRejected() throws Exception {
-        mockMvc.perform(post("/documents").content("not a multipart body"))
+        mockMvc.perform(post("/documents").header(API_KEY_HEADER, API_KEY).content("not a multipart body"))
                 .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    @DisplayName("missing API key returns 401 rather than reaching the service")
+    void missingApiKeyReturns401() throws Exception {
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "handbook.txt", "text/plain", "some readable text".getBytes(StandardCharsets.UTF_8));
+
+        mockMvc.perform(multipart("/documents").file(file))
+                .andExpect(status().isUnauthorized());
+
+        verifyNoInteractions(ingestionService);
+    }
+
+    @Test
+    @DisplayName("wrong API key returns 401 rather than reaching the service")
+    void wrongApiKeyReturns401() throws Exception {
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "handbook.txt", "text/plain", "some readable text".getBytes(StandardCharsets.UTF_8));
+
+        mockMvc.perform(multipart("/documents").file(file).header(API_KEY_HEADER, "not-the-right-key"))
+                .andExpect(status().isUnauthorized());
+
+        verifyNoInteractions(ingestionService);
     }
 }

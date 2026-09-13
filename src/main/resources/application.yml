@@ -38,6 +38,10 @@ spring:
 # RAG tuning knobs. These are the levers the eval harness measures, so they live in
 # config rather than being buried in the services.
 app:
+  # Shared secret required on /ask and /documents via the X-API-Key header (see
+  # ApiKeyFilter). Set it as an environment variable before running the app:
+  #   export APP_API_KEY=some-secret-value
+  api-key: ${APP_API_KEY}
   rag:
     # Chunk size in tokens. Smaller chunks give sharper embeddings but lose surrounding
     # context; larger chunks do the reverse. 800 is the Spring AI default, but eval/ on a

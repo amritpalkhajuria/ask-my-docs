@@ -30,6 +30,7 @@ Standard library only — no pip install needed.
 
 import argparse
 import json
+import os
 import pathlib
 import re
 import statistics
@@ -48,10 +49,15 @@ def normalise(text):
 
 def ask(base_url, question, timeout):
     payload = json.dumps({"question": question}).encode("utf-8")
+    headers = {"Content-Type": "application/json"}
+    # Same env var the app itself reads its expected key from (app.api-key: ${APP_API_KEY}).
+    api_key = os.environ.get("APP_API_KEY")
+    if api_key:
+        headers["X-API-Key"] = api_key
     request = urllib.request.Request(
         f"{base_url.rstrip('/')}/ask",
         data=payload,
-        headers={"Content-Type": "application/json"},
+        headers=headers,
         method="POST",
     )
     with urllib.request.urlopen(request, timeout=timeout) as response:

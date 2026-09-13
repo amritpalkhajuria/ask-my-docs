@@ -2,6 +2,16 @@
 
 [![CI](https://github.com/amritpalkhajuria/ask-my-docs/actions/workflows/ci.yml/badge.svg)](https://github.com/amritpalkhajuria/ask-my-docs/actions/workflows/ci.yml)
 
+**Live demo:** https://your-app.up.railway.app
+Demo API key: `<key>` — send as `X-API-Key` header.
+Example:
+```bash
+curl -X POST https://your-app.up.railway.app/ask \
+  -H "X-API-Key: <key>" \
+  -H "Content-Type: application/json" \
+  -d '{"question": "What did this person do at UnitedHealth Group?"}'
+```
+
 A backend service that lets you upload a document (PDF, DOCX, TXT) and ask
 natural-language questions about it. Answers are grounded in the document's
 actual content via Retrieval-Augmented Generation (RAG), not just the LLM's
@@ -56,8 +66,9 @@ versus asking it cold.
 # 1. Start Postgres with pgvector
 docker compose up -d
 
-# 2. Set your OpenAI API key
+# 2. Set your OpenAI API key and a secret of your choosing for API auth
 export OPENAI_API_KEY= your api key
+export APP_API_KEY= your chosen secret
 
 # 3. Run the app
 mvn spring-boot:run
@@ -65,28 +76,30 @@ mvn spring-boot:run
 
 **Upload a document:**
 ```bash
-curl -F "file=@/path/to/your.pdf" http://localhost:8080/documents
+curl -F "file=@/path/to/your.pdf" -H "X-API-Key: $APP_API_KEY" http://localhost:8080/documents
 ```
 
 **Ask a question about it:**
 ```bash
 curl -X POST http://localhost:8080/ask \
   -H "Content-Type: application/json" \
+  -H "X-API-Key: $APP_API_KEY" \
   -d '{"question": "What experience does this candidate have with Kafka?"}'
 ```
 
 ## Testing
 
-24 tests across 5 classes, run with `mvn test`:
+28 tests across 5 classes, run with `mvn test`:
 
 - **`QueryServiceTest`** (5) — the enforced refusal path (no chunk above `similarity-threshold`
   means the LLM is never called), top-k/threshold wiring, and that a blank question is
   rejected as a 400 rather than reaching the model.
 - **`IngestionServiceTest`** (5) — chunk counts against the splitter's real behavior, plus
   empty-file and unreadable-file rejection.
-- **`DocumentControllerTest`** (5) — multipart upload handling, including the non-multipart
-  POST and oversized-file edge cases.
-- **`QueryControllerTest`** (5) — request validation and error-response shape.
+- **`DocumentControllerTest`** (7) — multipart upload handling, including the non-multipart
+  POST and oversized-file edge cases, plus `ApiKeyFilter` rejecting missing/wrong keys.
+- **`QueryControllerTest`** (7) — request validation, error-response shape, and `ApiKeyFilter`
+  rejecting missing/wrong keys.
 - **`RagIntegrationTest`** (4) — the only test touching a real database: spins up Postgres +
   pgvector via Testcontainers and exercises the full ingest → embed → store →
   similarity-search path. Uses `HashingEmbeddingModel` (`support/HashingEmbeddingModel.java`),
@@ -197,6 +210,7 @@ chunk, which is what the eval harness above scores retrieval accuracy from.
 ```bash
 curl -X POST http://localhost:8080/ask \
   -H "Content-Type: application/json" \
+  -H "X-API-Key: $APP_API_KEY" \
   -d '{"question": "What did this person do at UnitedHealth Group?"}'
 ```
 
@@ -240,7 +254,6 @@ included yet, to keep scope tight:
   top-k retrieval at all — no fixed set of chunks represents the whole document, so this
   needs a map-reduce pass over every chunk, not a similarity search)
 - [ ] Multi-document filtering (currently searches across all ingested docs)
-- [ ] Auth on the endpoints
 
 ## What this demonstrates
 

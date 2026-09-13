@@ -2,12 +2,12 @@
 
 [![CI](https://github.com/amritpalkhajuria/ask-my-docs/actions/workflows/ci.yml/badge.svg)](https://github.com/amritpalkhajuria/ask-my-docs/actions/workflows/ci.yml)
 
-**Live demo:** https://your-app.up.railway.app
-Demo API key: `<key>` — send as `X-API-Key` header.
+**Live demo:** https://ask-my-docs-production-3336.up.railway.app
+Demo API key: `thisisthesamplekeyforapp` — send as `X-API-Key` header.
 Example:
 ```bash
-curl -X POST https://your-app.up.railway.app/ask \
-  -H "X-API-Key: <key>" \
+curl -X POST https://ask-my-docs-production-3336.up.railway.app/ask \
+  -H "X-API-Key: thisisthesamplekeyforapp" \
   -H "Content-Type: application/json" \
   -d '{"question": "What did this person do at UnitedHealth Group?"}'
 ```

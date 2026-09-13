@@ -239,13 +239,12 @@ included yet, to keep scope tight:
 - [ ] Whole-document summarization ("What is this document about?" isn't answerable by
   top-k retrieval at all — no fixed set of chunks represents the whole document, so this
   needs a map-reduce pass over every chunk, not a similarity search)
-- [ ] Observability — log token usage, latency, retrieval relevance per query
 - [ ] Multi-document filtering (currently searches across all ingested docs)
 - [ ] Auth on the endpoints
-- [x] Automated tests
 
 ## What this demonstrates
 
 - LLM integration (prompt construction, calling chat + embedding APIs, handling responses)
 - Vector databases (embeddings, similarity search, pgvector as a Postgres extension)
 - RAG pattern (retrieval, augmentation, generation) end-to-end, not just a wrapper around a chat API
+- Auditable retrieval — every answer returns the chunks it was built from with per-chunk similarity scores, so the evidence for an answer can be checked rather than trusted

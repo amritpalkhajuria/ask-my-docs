@@ -6,6 +6,9 @@
 <title>Ask My Docs</title>
 <style>
   * { box-sizing: border-box; }
+  /* Without this, [hidden] loses to any element's own `display` rule (e.g. .samples's
+     display: flex below), since author styles beat the browser's default [hidden] rule. */
+  [hidden] { display: none !important; }
   body {
     margin: 0;
     padding: 32px 16px;
@@ -44,6 +47,8 @@
   }
   #document-file {
     flex: 1 1 220px;
+    min-width: 0;
+    max-width: 100%;
     padding: 10px 12px;
     font: inherit;
     border: 1px solid #d8d5d0;
@@ -87,11 +92,14 @@
   }
   .ask-row {
     display: flex;
+    flex-wrap: wrap;
     gap: 8px;
     margin-bottom: 24px;
   }
   #question {
-    flex: 1;
+    flex: 1 1 220px;
+    min-width: 0;
+    max-width: 100%;
     padding: 12px 14px;
     font-size: 1rem;
     border: 1px solid #d8d5d0;

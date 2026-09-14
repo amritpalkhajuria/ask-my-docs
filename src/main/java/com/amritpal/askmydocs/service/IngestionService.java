@@ -10,11 +10,21 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class IngestionService {
 
     static final String SOURCE_METADATA_KEY = "source";
+    static final String DOCUMENT_ID_METADATA_KEY = "documentId";
+
+    /**
+     * Result of an ingest call. The documentId is what scopes every later {@code /ask} to
+     * this upload alone — without it, {@code QueryService} would search across every
+     * document anyone has ever uploaded.
+     */
+    public record IngestionResult(String documentId, int chunksStored) {
+    }
 
     private final VectorStore vectorStore;
     private final TokenTextSplitter splitter;
@@ -43,7 +53,7 @@ public class IngestionService {
      * the document is searchable and every later question against it comes back empty.
      * Failing loudly at ingest time is the whole point.
      */
-    public int ingest(byte[] fileBytes, String filename) {
+    public IngestionResult ingest(byte[] fileBytes, String filename) {
         if (fileBytes == null || fileBytes.length == 0) {
             throw new InvalidRequestException("Uploaded file '" + filename + "' is empty.");
         }
@@ -65,9 +75,15 @@ public class IngestionService {
                     "No extractable text found in '" + filename + "'. Scanned images need OCR first.");
         }
 
-        chunks.forEach(chunk -> chunk.getMetadata().put(SOURCE_METADATA_KEY, filename));
+        // Server-generated, never client-supplied: this is what keeps one visitor's upload
+        // from being guessable or collidable with another's on a public, unauthenticated endpoint.
+        String documentId = UUID.randomUUID().toString();
+        chunks.forEach(chunk -> {
+            chunk.getMetadata().put(SOURCE_METADATA_KEY, filename);
+            chunk.getMetadata().put(DOCUMENT_ID_METADATA_KEY, documentId);
+        });
         vectorStore.add(chunks);
 
-        return chunks.size();
+        return new IngestionResult(documentId, chunks.size());
     }
 }

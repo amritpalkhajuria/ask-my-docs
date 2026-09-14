@@ -6,6 +6,8 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.ai.vectorstore.filter.Filter;
+import org.springframework.ai.vectorstore.filter.FilterExpressionBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -45,6 +47,7 @@ public class QueryService {
     private final ChatClient chatClient;
     private final int topK;
     private final double similarityThreshold;
+    private final FilterExpressionBuilder filterBuilder = new FilterExpressionBuilder();
 
     public QueryService(VectorStore vectorStore,
                         ChatClient.Builder chatClientBuilder,
@@ -56,10 +59,20 @@ public class QueryService {
         this.similarityThreshold = similarityThreshold;
     }
 
-    public AskResponse ask(String question) {
+    /**
+     * documentId scopes retrieval to a single upload. Without it, every visitor's questions
+     * would search across every document anyone has ever ingested on this shared vector store —
+     * this is a public, multi-tenant endpoint now, not a single-corpus demo.
+     */
+    public AskResponse ask(String question, String documentId) {
+        Filter.Expression scopedToDocument = filterBuilder
+                .eq(IngestionService.DOCUMENT_ID_METADATA_KEY, documentId)
+                .build();
+
         SearchRequest searchRequest = SearchRequest.query(question)
                 .withTopK(topK)
-                .withSimilarityThreshold(similarityThreshold);
+                .withSimilarityThreshold(similarityThreshold)
+                .withFilterExpression(scopedToDocument);
 
         List<Document> relevantChunks = vectorStore.similaritySearch(searchRequest);
 

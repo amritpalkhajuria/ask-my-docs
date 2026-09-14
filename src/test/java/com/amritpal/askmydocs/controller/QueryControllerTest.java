@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
@@ -22,11 +21,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(QueryController.class)
-@TestPropertySource(properties = "app.api-key=test-key")
 class QueryControllerTest {
-
-    private static final String API_KEY_HEADER = "X-API-Key";
-    private static final String API_KEY = "test-key";
 
     @Autowired
     private MockMvc mockMvc;
@@ -37,16 +32,15 @@ class QueryControllerTest {
     @Test
     @DisplayName("valid question returns 200 with the answer and the retrieved chunks")
     void validQuestionReturns200() throws Exception {
-        when(queryService.ask("How are keys rotated?")).thenReturn(new AskResponse(
+        when(queryService.ask("How are keys rotated?", "doc-1")).thenReturn(new AskResponse(
                 "How are keys rotated?",
                 "Every 90 days.",
                 true,
                 List.of(new RetrievedChunk("c1", "handbook.pdf", 0.81, "Keys rotate every 90 days."))));
 
         mockMvc.perform(post("/ask")
-                        .header(API_KEY_HEADER, API_KEY)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"question\": \"How are keys rotated?\"}"))
+                        .content("{\"question\": \"How are keys rotated?\", \"documentId\": \"doc-1\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.answer").value("Every 90 days."))
                 .andExpect(jsonPath("$.answered").value(true))
@@ -56,13 +50,12 @@ class QueryControllerTest {
     @Test
     @DisplayName("an out-of-scope question returns 200 with answered=false")
     void outOfScopeQuestionReturnsAnsweredFalse() throws Exception {
-        when(queryService.ask(anyString()))
+        when(queryService.ask(anyString(), anyString()))
                 .thenReturn(AskResponse.declined("Who won the 1998 World Cup?", "I don't know."));
 
         mockMvc.perform(post("/ask")
-                        .header(API_KEY_HEADER, API_KEY)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"question\": \"Who won the 1998 World Cup?\"}"))
+                        .content("{\"question\": \"Who won the 1998 World Cup?\", \"documentId\": \"doc-1\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.answered").value(false))
                 .andExpect(jsonPath("$.retrieved").isEmpty());
@@ -72,9 +65,8 @@ class QueryControllerTest {
     @DisplayName("body with no question field returns 400, not 500")
     void missingQuestionFieldReturns400() throws Exception {
         mockMvc.perform(post("/ask")
-                        .header(API_KEY_HEADER, API_KEY)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"query\": \"wrong field name\"}"))
+                        .content("{\"query\": \"wrong field name\", \"documentId\": \"doc-1\"}"))
                 .andExpect(status().isBadRequest());
 
         verifyNoInteractions(queryService);
@@ -84,9 +76,8 @@ class QueryControllerTest {
     @DisplayName("blank question returns 400")
     void blankQuestionReturns400() throws Exception {
         mockMvc.perform(post("/ask")
-                        .header(API_KEY_HEADER, API_KEY)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"question\": \"   \"}"))
+                        .content("{\"question\": \"   \", \"documentId\": \"doc-1\"}"))
                 .andExpect(status().isBadRequest());
 
         verifyNoInteractions(queryService);
@@ -96,7 +87,6 @@ class QueryControllerTest {
     @DisplayName("malformed JSON returns 400")
     void malformedJsonReturns400() throws Exception {
         mockMvc.perform(post("/ask")
-                        .header(API_KEY_HEADER, API_KEY)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"question\": "))
                 .andExpect(status().isBadRequest());
@@ -105,24 +95,23 @@ class QueryControllerTest {
     }
 
     @Test
-    @DisplayName("missing API key returns 401 rather than reaching the service")
-    void missingApiKeyReturns401() throws Exception {
+    @DisplayName("missing documentId returns 400 rather than searching across every uploaded document")
+    void missingDocumentIdReturns400() throws Exception {
         mockMvc.perform(post("/ask")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"question\": \"How are keys rotated?\"}"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isBadRequest());
 
         verifyNoInteractions(queryService);
     }
 
     @Test
-    @DisplayName("wrong API key returns 401 rather than reaching the service")
-    void wrongApiKeyReturns401() throws Exception {
+    @DisplayName("documentId with characters outside the issued shape returns 400")
+    void malformedDocumentIdReturns400() throws Exception {
         mockMvc.perform(post("/ask")
-                        .header(API_KEY_HEADER, "not-the-right-key")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"question\": \"How are keys rotated?\"}"))
-                .andExpect(status().isUnauthorized());
+                        .content("{\"question\": \"How are keys rotated?\", \"documentId\": \"'; drop table vector_store; --\"}"))
+                .andExpect(status().isBadRequest());
 
         verifyNoInteractions(queryService);
     }

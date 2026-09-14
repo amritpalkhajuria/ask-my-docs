@@ -20,10 +20,12 @@ right noun, so the harness asks rather than guessing. Verdicts are cached in res
 so re-running after a config change only re-asks about answers that changed.
 
 Usage:
-    python3 eval/run_eval.py                          # score, prompting for uncertain answers
-    python3 eval/run_eval.py --auto                   # keyword scoring only, no prompts
-    python3 eval/run_eval.py --url http://host:8080
-    python3 eval/run_eval.py --questions eval/questions.json --results eval/results.json
+    # documentId comes back from POST /documents when you ingest the eval corpus — /ask is
+    # scoped to one upload, so this has to be passed on every request (or via EVAL_DOCUMENT_ID).
+    python3 eval/run_eval.py --document-id <id>                # score, prompting for uncertain answers
+    python3 eval/run_eval.py --document-id <id> --auto         # keyword scoring only, no prompts
+    python3 eval/run_eval.py --document-id <id> --url http://host:8080
+    python3 eval/run_eval.py --document-id <id> --questions eval/questions.json --results eval/results.json
 
 Standard library only — no pip install needed.
 """
@@ -47,13 +49,9 @@ def normalise(text):
     return re.sub(r"\s+", " ", (text or "").lower()).strip()
 
 
-def ask(base_url, question, timeout):
-    payload = json.dumps({"question": question}).encode("utf-8")
+def ask(base_url, question, document_id, timeout):
+    payload = json.dumps({"question": question, "documentId": document_id}).encode("utf-8")
     headers = {"Content-Type": "application/json"}
-    # Same env var the app itself reads its expected key from (app.api-key: ${APP_API_KEY}).
-    api_key = os.environ.get("APP_API_KEY")
-    if api_key:
-        headers["X-API-Key"] = api_key
     request = urllib.request.Request(
         f"{base_url.rstrip('/')}/ask",
         data=payload,
@@ -116,7 +114,7 @@ def run(args):
             continue
 
         try:
-            response = ask(args.url, case["question"], args.timeout)
+            response = ask(args.url, case["question"], args.document_id, args.timeout)
         except (urllib.error.URLError, TimeoutError) as exc:
             print(f"  {case['id']}: request failed — {exc}", file=sys.stderr)
             print("  is the app running, and is the document ingested?", file=sys.stderr)
@@ -242,7 +240,16 @@ def main():
     parser.add_argument("--timeout", type=float, default=60.0)
     parser.add_argument("--auto", action="store_true",
                         help="keyword scoring only, no interactive confirmation")
-    sys.exit(run(parser.parse_args()))
+    # /ask now scopes retrieval to one upload (see QueryService) — this must be the
+    # documentId that /documents returned when the question set's corpus was ingested.
+    parser.add_argument("--document-id", default=os.environ.get("EVAL_DOCUMENT_ID"),
+                        help="documentId returned by /documents for the ingested corpus "
+                             "(or set EVAL_DOCUMENT_ID)")
+    args = parser.parse_args()
+    if not args.document_id:
+        parser.error("--document-id (or EVAL_DOCUMENT_ID) is required — ingest the corpus via "
+                     "/documents first and pass back the documentId it returns.")
+    sys.exit(run(args))
 
 
 if __name__ == "__main__":

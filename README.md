@@ -2,20 +2,17 @@
 
 [![CI](https://github.com/amritpalkhajuria/ask-my-docs/actions/workflows/ci.yml/badge.svg)](https://github.com/amritpalkhajuria/ask-my-docs/actions/workflows/ci.yml)
 
-**Live demo:** https://ask-my-docs-production-3336.up.railway.app
-Demo API key: `thisisthesamplekeyforapp` — send as `X-API-Key` header.
-Example:
-```bash
-curl -X POST https://ask-my-docs-production-3336.up.railway.app/ask \
-  -H "X-API-Key: thisisthesamplekeyforapp" \
-  -H "Content-Type: application/json" \
-  -d '{"question": "What did this person do at UnitedHealth Group?"}'
-```
+**Live demo:** https://ask-my-docs-production-3336.up.railway.app — open it and upload your
+own PDF/DOCX/TXT (up to 4MB), or try the pre-loaded sample questions about my CV.
 
-A backend service that lets you upload a document (PDF, DOCX, TXT) and ask
-natural-language questions about it. Answers are grounded in the document's
-actual content via Retrieval-Augmented Generation (RAG), not just the LLM's
-general training data.
+A backend service that lets you upload a document (PDF, DOCX, TXT, up to 4MB) and ask
+natural-language questions about it. Answers are grounded in the document's actual content
+via Retrieval-Augmented Generation (RAG), not just the LLM's general training data.
+
+`/documents` and `/ask` are public and unauthenticated — every upload gets its own
+server-generated `documentId`, and every question is scoped to one `documentId`, so your
+upload is never searchable by anyone else's questions (or by the sample CV, or vice versa).
+The 4MB cap exists because every upload triggers a real, billed OpenAI embedding call.
 
 ## Why I built this
 
@@ -66,45 +63,62 @@ versus asking it cold.
 # 1. Start Postgres with pgvector
 docker compose up -d
 
-# 2. Set your OpenAI API key and a secret of your choosing for API auth
+# 2. Set your OpenAI API key
 export OPENAI_API_KEY= your api key
-export APP_API_KEY= your chosen secret
 
 # 3. Run the app
 mvn spring-boot:run
 ```
 
-**Upload a document:**
+**Upload a document** — the response includes a `documentId` that scopes every later
+question to this upload:
 ```bash
-curl -F "file=@/path/to/your.pdf" -H "X-API-Key: $APP_API_KEY" http://localhost:8080/documents
+curl -F "file=@/path/to/your.pdf" http://localhost:8080/documents
+# {"documentId":"3f1c...","filename":"your.pdf","chunksStored":12,"status":"ingested"}
 ```
 
 **Ask a question about it:**
 ```bash
 curl -X POST http://localhost:8080/ask \
   -H "Content-Type: application/json" \
-  -H "X-API-Key: $APP_API_KEY" \
-  -d '{"question": "What experience does this candidate have with Kafka?"}'
+  -d '{"question": "What experience does this candidate have with Kafka?", "documentId": "3f1c..."}'
 ```
+
+### Seeding the demo document
+
+The frontend's sample-question buttons point at a fixed `documentId`, configured via the
+`DEMO_DOCUMENT_ID` env var (`app.rag.demo-document-id`) — not hardcoded, since a fresh
+database has no documents in it yet. To (re-)seed it:
+
+```bash
+curl -F "file=@/path/to/your.pdf" http://localhost:8080/documents   # note the documentId
+export DEMO_DOCUMENT_ID=<that documentId>                           # set on the deployment, then restart
+```
+
+`GET /documents/demo` returns `{"documentId": null}` until this is set, and the frontend
+hides the sample buttons in that case rather than pointing them at a document that isn't there.
 
 ## Testing
 
-26 tests across 5 classes, run with `mvn test`:
+Run with `mvn test`:
 
-- **`QueryServiceTest`** (5) — the enforced refusal path (no chunk above `similarity-threshold`
-  means the LLM is never called), top-k/threshold wiring, and that a blank question is
-  rejected as a 400 rather than reaching the model.
-- **`IngestionServiceTest`** (5) — chunk counts against the splitter's real behavior, plus
-  empty-file and unreadable-file rejection.
-- **`DocumentControllerTest`** (7) — multipart upload handling, including the non-multipart
-  POST and oversized-file edge cases, plus `ApiKeyFilter` rejecting missing/wrong keys.
-- **`QueryControllerTest`** (7) — request validation, error-response shape, and `ApiKeyFilter`
-  rejecting missing/wrong keys.
-- **`RagIntegrationTest`** (2) — the only test touching a real database: spins up Postgres +
+- **`QueryServiceTest`** — the enforced refusal path (no chunk above `similarity-threshold`
+  means the LLM is never called), top-k/threshold wiring, that a blank question is rejected
+  as a 400 rather than reaching the model, and that the search is scoped to the requested
+  `documentId` via a filter expression.
+- **`IngestionServiceTest`** — chunk counts against the splitter's real behavior, empty-file
+  and unreadable-file rejection, and that every chunk in an upload gets the same
+  server-generated `documentId` (and that two uploads never collide).
+- **`DocumentControllerTest`** — multipart upload handling, including the non-multipart POST
+  and oversized-file edge cases, and the `/documents/demo` lookup.
+- **`QueryControllerTest`** — request validation and error-response shape, including a missing
+  or malformed `documentId` being rejected as a 400.
+- **`RagIntegrationTest`** — the only test touching a real database: spins up Postgres +
   pgvector via Testcontainers and exercises the full ingest → embed → store →
-  similarity-search path. Uses `HashingEmbeddingModel` (`support/HashingEmbeddingModel.java`),
-  a deterministic offline stand-in for the OpenAI embedding model, so it needs Docker but no
-  API key or network access.
+  similarity-search path, including that a `documentId` filter actually keeps one upload's
+  chunks out of another's results. Uses `HashingEmbeddingModel`
+  (`support/HashingEmbeddingModel.java`), a deterministic offline stand-in for the OpenAI
+  embedding model, so it needs Docker but no API key or network access.
 
 No test calls a paid API — unit tests mock the LLM, and the integration test's embedding
 model is fully offline. This is what the CI badge above reflects.
@@ -210,8 +224,7 @@ chunk, which is what the eval harness above scores retrieval accuracy from.
 ```bash
 curl -X POST http://localhost:8080/ask \
   -H "Content-Type: application/json" \
-  -H "X-API-Key: $APP_API_KEY" \
-  -d '{"question": "What did this person do at UnitedHealth Group?"}'
+  -d '{"question": "What did this person do at UnitedHealth Group?", "documentId": "3f1c..."}'
 ```
 
 **Response:**
@@ -253,7 +266,10 @@ included yet, to keep scope tight:
 - [ ] Whole-document summarization ("What is this document about?" isn't answerable by
   top-k retrieval at all — no fixed set of chunks represents the whole document, so this
   needs a map-reduce pass over every chunk, not a similarity search)
-- [ ] Multi-document filtering (currently searches across all ingested docs)
+- [x] Multi-document isolation — every upload gets its own `documentId` and `/ask` is scoped
+  to it via a filter expression, so concurrent visitors' documents never mix
+- [ ] Expiring/deleting uploads (uploaded documents currently live in `vector_store` forever;
+  there's no TTL or delete endpoint yet)
 
 ## What this demonstrates
 

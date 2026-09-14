@@ -8,7 +8,8 @@ OpenAI (`text-embedding-3-small` for embeddings, `gpt-4o-mini` for chat).
 - `docker compose up -d` — Postgres with pgvector on port 5433
 - `mvn spring-boot:run` — needs `OPENAI_API_KEY` exported
 - `mvn test` — full suite; needs Docker for the Testcontainers integration test
-- `python3 eval/run_eval.py` — scores retrieval, answer correctness and refusal rate
+- `python3 eval/run_eval.py --document-id <id>` — scores retrieval, answer correctness and
+  refusal rate against one ingested document (`/ask` is scoped by `documentId`, see below)
 
 ## Constraints
 
@@ -35,6 +36,12 @@ refusal is enforced by the system rather than requested of the model. The eval m
 
 **`AskResponse.retrieved` is not decoration.** The eval harness scores retrieval accuracy
 from it, separately from answer correctness. Don't trim the response shape.
+
+**`/documents` and `/ask` are public and unauthenticated, and multi-tenant via `documentId`.**
+Every upload gets its own server-generated `documentId` (`IngestionService`); `QueryService`
+filters every search to the requested `documentId`. Do not add a path that searches across
+documentIds, and do not accept a client-supplied `documentId` on ingest — it must stay
+server-generated, or an attacker could guess/collide with another visitor's ID.
 
 ## Conventions
 

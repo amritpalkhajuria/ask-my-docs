@@ -9,6 +9,7 @@ import org.springframework.ai.document.Document;
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.ai.vectorstore.filter.FilterExpressionBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -60,8 +61,6 @@ class RagIntegrationTest {
     static void openAiProperties(DynamicPropertyRegistry registry) {
         // The OpenAI auto-configuration needs a key present to start; nothing here calls out.
         registry.add("spring.ai.openai.api-key", () -> "test-key-not-used");
-        // ApiKeyFilter needs app.api-key present to start; this test never goes through HTTP.
-        registry.add("app.api-key", () -> "test-key-not-used");
     }
 
     @TestConfiguration
@@ -91,12 +90,12 @@ class RagIntegrationTest {
     @Test
     @DisplayName("ingests a document and retrieves the chunk that actually answers the query")
     void ingestsAndRetrievesTheCorrectChunk() {
-        int chunksStored = ingestionService.ingest(handbook(), "security-handbook.txt");
-        assertThat(chunksStored).isGreaterThan(1);
+        IngestionService.IngestionResult result = ingestionService.ingest(handbook(), "security-handbook.txt");
+        assertThat(result.chunksStored()).isGreaterThan(1);
 
         // The vector store really wrote rows — not a mock that swallowed them.
         Integer rowCount = jdbcTemplate.queryForObject("SELECT count(*) FROM vector_store", Integer.class);
-        assertThat(rowCount).isEqualTo(chunksStored);
+        assertThat(rowCount).isEqualTo(result.chunksStored());
 
         List<Document> results = vectorStore.similaritySearch(
                 SearchRequest.query("How often must encryption keys be rotated?")
@@ -109,6 +108,7 @@ class RagIntegrationTest {
                 .contains("rotated every ninety days");
         assertThat(results.get(0).getMetadata())
                 .containsEntry("source", "security-handbook.txt")
+                .containsEntry("documentId", result.documentId())
                 .containsKey("distance");
     }
 
@@ -124,6 +124,32 @@ class RagIntegrationTest {
 
         // This is what makes the refusal path in QueryService reachable in production.
         assertThat(results).isEmpty();
+    }
+
+    @Test
+    @DisplayName("a documentId filter keeps one upload's chunks out of another's search results")
+    void documentIdFilterIsolatesUploads() {
+        IngestionService.IngestionResult handbookResult = ingestionService.ingest(handbook(), "security-handbook.txt");
+        IngestionService.IngestionResult otherResult = ingestionService.ingest(
+                "Encryption keys in this unrelated document are also rotated regularly."
+                        .getBytes(StandardCharsets.UTF_8),
+                "unrelated.txt");
+
+        List<Document> results = vectorStore.similaritySearch(
+                SearchRequest.query("How often must encryption keys be rotated?")
+                        .withTopK(10)
+                        .withSimilarityThresholdAll()
+                        .withFilterExpression(new FilterExpressionBuilder()
+                                .eq("documentId", handbookResult.documentId())
+                                .build()));
+
+        assertThat(results).isNotEmpty();
+        assertThat(results)
+                .as("scoping by documentId must exclude the other upload's chunks even though "
+                        + "they're topically similar")
+                .allSatisfy(chunk -> assertThat(chunk.getMetadata())
+                        .containsEntry("documentId", handbookResult.documentId())
+                        .doesNotContainEntry("documentId", otherResult.documentId()));
     }
 
     private static byte[] handbook() {

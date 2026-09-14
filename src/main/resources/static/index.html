@@ -33,6 +33,46 @@
     gap: 8px;
     margin-bottom: 16px;
   }
+  .upload-card {
+    margin-bottom: 24px;
+  }
+  .upload-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+  }
+  #document-file {
+    flex: 1 1 220px;
+    padding: 10px 12px;
+    font: inherit;
+    border: 1px solid #d8d5d0;
+    border-radius: 8px;
+    background: #fff;
+  }
+  #active-doc {
+    margin: 10px 0 0;
+    font-size: 0.85rem;
+    color: #3b5b3f;
+    font-weight: 600;
+  }
+  #upload-btn {
+    padding: 10px 16px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    background: #3b5b3f;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  #upload-btn:disabled {
+    background: #8b9b8d;
+    cursor: default;
+  }
+  #upload-status {
+    margin: 10px 0 0;
+  }
   .sample-btn {
     background: #fff;
     border: 1px solid #d8d5d0;
@@ -131,19 +171,29 @@
 <div class="wrap">
   <h1>Ask My Docs</h1>
   <p class="subtitle">
-    RAG Q&amp;A over a real document. Every answer below is shown next to the
-    exact chunks it was retrieved from, with the cosine similarity score
-    that got each one past the retrieval threshold — nothing here is taken
-    on faith.
+    Upload your own PDF, DOCX, or TXT file (up to 4 MB), then ask questions about its
+    contents. Every answer is shown with the exact chunks retrieved as evidence. Your
+    document is private to this browser — nobody else's questions can retrieve it.
   </p>
 
-  <div class="samples">
+  <div class="card upload-card">
+    <h2>1. Upload a document</h2>
+    <div class="upload-row">
+      <input id="document-file" type="file" accept=".pdf,.docx,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain" />
+      <button id="upload-btn">Upload</button>
+    </div>
+    <p id="upload-status" class="status">Files up to 4 MB are supported.</p>
+    <p id="active-doc" hidden></p>
+  </div>
+
+  <h2>2. Ask a question</h2>
+  <div id="samples" class="samples" hidden>
     <button class="sample-btn" data-q="What did this person do at UnitedHealth Group?">What did this person do at UnitedHealth Group?</button>
     <button class="sample-btn" data-q="What was their MSc dissertation project about?">What was their MSc dissertation project about?</button>
   </div>
 
   <div class="ask-row">
-    <input id="question" type="text" placeholder="Ask a question about the ingested document..." />
+    <input id="question" type="text" placeholder="Ask a question about the active document..." />
     <button id="ask-btn">Ask</button>
   </div>
 
@@ -151,29 +201,106 @@
 </div>
 
 <script>
-  // Demo-only key, already public in the README — the app has no rate limiting
-  // beyond this shared secret, so treat it as a low-stakes throwaway key.
-  const API_KEY = "thisisthesamplekeyforapp";
-
+  const documentFileInput = document.getElementById("document-file");
+  const uploadBtn = document.getElementById("upload-btn");
+  const uploadStatus = document.getElementById("upload-status");
+  const activeDoc = document.getElementById("active-doc");
+  const samples = document.getElementById("samples");
   const questionInput = document.getElementById("question");
   const askBtn = document.getElementById("ask-btn");
   const results = document.getElementById("results");
 
+  // Which document /ask is scoped to right now. Every upload gets its own server-generated
+  // documentId (see IngestionService) so one visitor's file is never searchable by anyone
+  // else's questions — this state is what tracks which one is currently active in this tab.
+  let activeDocumentId = null;
+  let demoDocumentId = null;
+
+  init();
+
+  async function init() {
+    try {
+      const res = await fetch("/documents/demo");
+      const body = await res.json();
+      if (body.documentId) {
+        demoDocumentId = body.documentId;
+        setActiveDocument(demoDocumentId, "the sample CV");
+        samples.hidden = false;
+      }
+    } catch (err) {
+      // No demo configured yet (e.g. fresh local dev) — sample buttons just stay hidden.
+    }
+  }
+
   document.querySelectorAll(".sample-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
+      setActiveDocument(demoDocumentId, "the sample CV");
       questionInput.value = btn.dataset.q;
       ask();
     });
   });
 
+  uploadBtn.addEventListener("click", uploadDocument);
   askBtn.addEventListener("click", ask);
   questionInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter") ask();
   });
 
+  function setActiveDocument(documentId, label) {
+    activeDocumentId = documentId;
+    activeDoc.textContent = `Asking questions about: ${label}`;
+    activeDoc.hidden = false;
+  }
+
+  async function uploadDocument() {
+    const file = documentFileInput.files[0];
+    if (!file) {
+      setUploadStatus("Choose a PDF, DOCX, or TXT file first.", "error");
+      return;
+    }
+    if (file.size > 4 * 1024 * 1024) {
+      setUploadStatus("That file is over the 4 MB limit.", "error");
+      return;
+    }
+
+    uploadBtn.disabled = true;
+    setUploadStatus(`Uploading ${file.name} and creating searchable chunks...`, "status");
+
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const res = await fetch("/documents", {
+        method: "POST",
+        body: form,
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setUploadStatus(`Upload failed (${res.status}): ${body.message || res.statusText}`, "error");
+        return;
+      }
+      setUploadStatus(`${body.filename} is ready — ${body.chunksStored} searchable chunks added.`, "status");
+      setActiveDocument(body.documentId, body.filename);
+      documentFileInput.value = "";
+      questionInput.focus();
+    } catch (err) {
+      setUploadStatus(`Upload failed: ${err.message}`, "error");
+    } finally {
+      uploadBtn.disabled = false;
+    }
+  }
+
+  function setUploadStatus(message, className) {
+    uploadStatus.textContent = message;
+    uploadStatus.className = className;
+  }
+
   async function ask() {
     const question = questionInput.value.trim();
     if (!question) return;
+    if (!activeDocumentId) {
+      results.innerHTML = '<p class="error">Upload a document above before asking a question.</p>';
+      return;
+    }
 
     askBtn.disabled = true;
     results.innerHTML = '<p class="status">Asking...</p>';
@@ -181,11 +308,8 @@
     try {
       const res = await fetch("/ask", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-API-Key": API_KEY,
-        },
-        body: JSON.stringify({ question }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question, documentId: activeDocumentId }),
       });
 
       if (!res.ok) {

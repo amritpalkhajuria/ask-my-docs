@@ -2,12 +2,14 @@ spring:
   application:
     name: ask-my-docs
 
-  # Spring Boot defaults to a 1MB max upload, which rejects almost any real PDF/DOCX
-  # (a 72-page dissertation is ~3MB). Raised to fit the documents this API exists to ingest.
+  # /documents is public and unauthenticated (see below) — every upload costs a real OpenAI
+  # embedding call, so the cap is deliberately tight rather than the 25MB Spring AI can
+  # technically handle. 4MB comfortably fits a CV, a paper, a handbook chapter; it's a ceiling
+  # against abuse, not a target for the documents this API is meant to answer questions about.
   servlet:
     multipart:
-      max-file-size: 25MB
-      max-request-size: 25MB
+      max-file-size: 4MB
+      max-request-size: 4MB
 
   # Connection to the Postgres container started by docker-compose
   datasource:
@@ -38,11 +40,11 @@ spring:
 # RAG tuning knobs. These are the levers the eval harness measures, so they live in
 # config rather than being buried in the services.
 app:
-  # Shared secret required on /ask and /documents via the X-API-Key header (see
-  # ApiKeyFilter). Set it as an environment variable before running the app:
-  #   export APP_API_KEY=some-secret-value
-  api-key: ${APP_API_KEY}
   rag:
+    # documentId of the pre-loaded sample corpus (this project's own CV), for the frontend's
+    # sample-question buttons. Set once via DEMO_DOCUMENT_ID after re-ingesting it through
+    # /documents — see README "Seeding the demo document". Empty means no sample doc yet.
+    demo-document-id: ${DEMO_DOCUMENT_ID:}
     # Chunk size in tokens. Smaller chunks give sharper embeddings but lose surrounding
     # context; larger chunks do the reverse. 800 is the Spring AI default, but eval/ on a
     # one-page CV (a few hundred words) showed 800 collapses the whole document into 1-2

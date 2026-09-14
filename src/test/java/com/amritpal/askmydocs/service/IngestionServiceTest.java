@@ -50,12 +50,12 @@ class IngestionServiceTest {
     void splitsLongDocumentIntoChunks() {
         byte[] file = longDocument().getBytes(StandardCharsets.UTF_8);
 
-        int stored = ingestionService.ingest(file, "handbook.txt");
+        IngestionService.IngestionResult result = ingestionService.ingest(file, "handbook.txt");
 
         verify(vectorStore).add(chunksCaptor.capture());
         List<Document> chunks = chunksCaptor.getValue();
 
-        assertThat(stored).isEqualTo(chunks.size());
+        assertThat(result.chunksStored()).isEqualTo(chunks.size());
         assertThat(chunks)
                 .as("a document well over the splitter's chunk size should produce several chunks")
                 .hasSizeGreaterThan(1);
@@ -71,9 +71,9 @@ class IngestionServiceTest {
         byte[] file = (HEAD_SENTINEL + " A short note about rate limiting in Spring Boot. " + TAIL_SENTINEL)
                 .getBytes(StandardCharsets.UTF_8);
 
-        int stored = ingestionService.ingest(file, "note.txt");
+        IngestionService.IngestionResult result = ingestionService.ingest(file, "note.txt");
 
-        assertThat(stored).isEqualTo(1);
+        assertThat(result.chunksStored()).isEqualTo(1);
     }
 
     @Test
@@ -85,6 +85,30 @@ class IngestionServiceTest {
 
         assertThat(chunksCaptor.getValue())
                 .allSatisfy(chunk -> assertThat(chunk.getMetadata()).containsEntry("source", "handbook.txt"));
+    }
+
+    @Test
+    @DisplayName("tags every chunk with the same generated documentId so retrieval can be scoped to this upload")
+    void tagsEveryChunkWithTheSameDocumentId() {
+        IngestionService.IngestionResult result =
+                ingestionService.ingest(longDocument().getBytes(StandardCharsets.UTF_8), "handbook.txt");
+
+        verify(vectorStore).add(chunksCaptor.capture());
+
+        assertThat(result.documentId()).isNotBlank();
+        assertThat(chunksCaptor.getValue())
+                .allSatisfy(chunk -> assertThat(chunk.getMetadata()).containsEntry("documentId", result.documentId()));
+    }
+
+    @Test
+    @DisplayName("two uploads get different documentIds")
+    void twoUploadsGetDifferentDocumentIds() {
+        IngestionService.IngestionResult first =
+                ingestionService.ingest(longDocument().getBytes(StandardCharsets.UTF_8), "handbook.txt");
+        IngestionService.IngestionResult second =
+                ingestionService.ingest(longDocument().getBytes(StandardCharsets.UTF_8), "handbook.txt");
+
+        assertThat(first.documentId()).isNotEqualTo(second.documentId());
     }
 
     @Test

@@ -20,10 +20,10 @@ public class QueryController {
      * Example usage (curl):
      *   curl -X POST http://localhost:8080/ask \
      *     -H "Content-Type: application/json" \
-     *     -d '{"question": "What experience does this candidate have with Kafka?"}'
+     *     -d '{"question": "What experience does this candidate have with Kafka?", "documentId": "<from /documents>"}'
      */
     @PostMapping("/ask")
     public AskResponse ask(@RequestBody AskRequest request) {
-        return queryService.ask(request.requireQuestion());
+        return queryService.ask(request.requireQuestion(), request.requireDocumentId());
     }
 }

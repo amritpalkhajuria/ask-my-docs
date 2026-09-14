@@ -65,7 +65,7 @@ class QueryServiceTest {
         stubChatClient("an answer");
         when(vectorStore.similaritySearch(any(SearchRequest.class))).thenReturn(List.of(chunk("some context", 0.2)));
 
-        queryService.ask("How is authentication handled?");
+        queryService.ask("How is authentication handled?", "doc-1");
 
         ArgumentCaptor<SearchRequest> captor = ArgumentCaptor.forClass(SearchRequest.class);
         verify(vectorStore).similaritySearch(captor.capture());
@@ -76,11 +76,26 @@ class QueryServiceTest {
     }
 
     @Test
+    @DisplayName("scopes the search to the given documentId so other uploads can't be retrieved")
+    void scopesSearchToDocumentId() {
+        stubChatClient("an answer");
+        when(vectorStore.similaritySearch(any(SearchRequest.class))).thenReturn(List.of(chunk("some context", 0.2)));
+
+        queryService.ask("How is authentication handled?", "doc-1");
+
+        ArgumentCaptor<SearchRequest> captor = ArgumentCaptor.forClass(SearchRequest.class);
+        verify(vectorStore).similaritySearch(captor.capture());
+
+        assertThat(captor.getValue().hasFilterExpression()).isTrue();
+        assertThat(captor.getValue().getFilterExpression().toString()).contains("doc-1");
+    }
+
+    @Test
     @DisplayName("declines without calling the LLM when nothing clears the similarity threshold")
     void declinesWhenNoChunksClearTheThreshold() {
         when(vectorStore.similaritySearch(any(SearchRequest.class))).thenReturn(List.of());
 
-        AskResponse response = queryService.ask("What is the airspeed velocity of an unladen swallow?");
+        AskResponse response = queryService.ask("What is the airspeed velocity of an unladen swallow?", "doc-1");
 
         assertThat(response.answered()).isFalse();
         assertThat(response.answer()).isEqualTo(QueryService.DECLINED_ANSWER);
@@ -96,7 +111,7 @@ class QueryServiceTest {
     void declinesOnNullSearchResult() {
         when(vectorStore.similaritySearch(any(SearchRequest.class))).thenReturn(null);
 
-        AskResponse response = queryService.ask("Anything?");
+        AskResponse response = queryService.ask("Anything?", "doc-1");
 
         assertThat(response.answered()).isFalse();
         verifyNoInteractions(chatClient);
@@ -109,7 +124,7 @@ class QueryServiceTest {
         when(vectorStore.similaritySearch(any(SearchRequest.class)))
                 .thenReturn(List.of(chunk("Keys rotate every 90 days.", 0.13), chunk("Key storage.", 0.42)));
 
-        AskResponse response = queryService.ask("How often are keys rotated?");
+        AskResponse response = queryService.ask("How often are keys rotated?", "doc-1");
 
         assertThat(response.answered()).isTrue();
         assertThat(response.answer()).isEqualTo("Keys rotate every 90 days.");

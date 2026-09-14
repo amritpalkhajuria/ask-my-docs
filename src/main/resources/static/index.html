@@ -9,26 +9,58 @@
   /* Without this, [hidden] loses to any element's own `display` rule (e.g. .samples's
      display: flex below), since author styles beat the browser's default [hidden] rule. */
   [hidden] { display: none !important; }
+  :root {
+    --accent: #3b5b3f;
+    --accent-dark: #2c452f;
+    --accent-tint: #eaf1ea;
+    --ink: #1a1a1a;
+    --muted: #6b6b6b;
+    --line: #e2ded6;
+    --surface: #ffffff;
+  }
+  html {
+    /* Fixed background (not scrolling with content) reads as a deliberate backdrop
+       rather than a flat fill — cheap way to add depth without a texture asset. */
+    background: linear-gradient(160deg, #eef3ec 0%, #f7f5f0 42%, #f7f5f0 100%) fixed;
+  }
   body {
     margin: 0;
-    padding: 32px 16px;
-    background: #f6f5f3;
-    color: #1a1a1a;
+    padding: 48px 16px 64px;
+    color: var(--ink);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
   }
   .wrap {
     max-width: 720px;
     margin: 0 auto;
   }
+  .eyebrow {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent-dark);
+    background: var(--accent-tint);
+    border: 1px solid #d3e3d4;
+    border-radius: 999px;
+    padding: 4px 12px;
+    margin-bottom: 14px;
+  }
   h1 {
-    font-size: 1.5rem;
-    margin: 0 0 4px;
+    font-size: 1.9rem;
+    letter-spacing: -0.01em;
+    margin: 0 0 8px;
   }
   .subtitle {
-    color: #555;
-    margin: 0 0 24px;
-    font-size: 0.95rem;
-    line-height: 1.5;
+    color: var(--muted);
+    margin: 0 0 28px;
+    font-size: 0.98rem;
+    line-height: 1.6;
+    max-width: 58ch;
+  }
+  h2.section {
+    font-size: 1.05rem;
+    margin: 0 0 12px;
   }
   .samples {
     display: flex;
@@ -37,7 +69,7 @@
     margin-bottom: 16px;
   }
   .upload-card {
-    margin-bottom: 24px;
+    margin-bottom: 28px;
   }
   .upload-row {
     display: flex;
@@ -51,50 +83,72 @@
     max-width: 100%;
     padding: 10px 12px;
     font: inherit;
-    border: 1px solid #d8d5d0;
+    border: 1px solid var(--line);
     border-radius: 8px;
-    background: #fff;
+    background: #fdfcfa;
+  }
+  #document-file:focus-visible,
+  #question:focus-visible {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-tint);
   }
   #active-doc {
-    margin: 10px 0 0;
+    margin: 12px 0 0;
     font-size: 0.85rem;
-    color: #3b5b3f;
+    color: var(--accent-dark);
     font-weight: 600;
   }
-  #upload-btn {
-    padding: 10px 16px;
+  #upload-btn,
+  #ask-btn {
+    padding: 10px 18px;
     font-size: 0.95rem;
     font-weight: 600;
-    background: #3b5b3f;
+    background: var(--accent);
     color: #fff;
     border: none;
     border-radius: 8px;
     cursor: pointer;
+    transition: background-color 0.15s ease, transform 0.1s ease;
   }
-  #upload-btn:disabled {
-    background: #8b9b8d;
+  #upload-btn:hover:not(:disabled),
+  #ask-btn:hover:not(:disabled) {
+    background: var(--accent-dark);
+    transform: translateY(-1px);
+  }
+  #upload-btn:active:not(:disabled),
+  #ask-btn:active:not(:disabled) {
+    transform: translateY(0);
+  }
+  #upload-btn:disabled,
+  #ask-btn:disabled {
+    background: #b7c2b8;
     cursor: default;
+    transform: none;
   }
   #upload-status {
-    margin: 10px 0 0;
+    margin: 12px 0 0;
   }
   .sample-btn {
-    background: #fff;
-    border: 1px solid #d8d5d0;
+    background: var(--surface);
+    border: 1px solid var(--line);
     border-radius: 999px;
     padding: 8px 14px;
     font-size: 0.85rem;
     cursor: pointer;
     color: #333;
+    transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
   }
   .sample-btn:hover {
-    border-color: #999;
+    border-color: var(--accent);
+    background: var(--accent-tint);
+    color: var(--accent-dark);
   }
   .ask-row {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    margin-bottom: 24px;
+    margin-bottom: 28px;
   }
   #question {
     flex: 1 1 220px;
@@ -102,69 +156,68 @@
     max-width: 100%;
     padding: 12px 14px;
     font-size: 1rem;
-    border: 1px solid #d8d5d0;
+    border: 1px solid var(--line);
     border-radius: 8px;
-    background: #fff;
+    background: #fdfcfa;
   }
   #ask-btn {
-    padding: 12px 20px;
+    padding: 12px 22px;
     font-size: 1rem;
-    font-weight: 600;
-    background: #1a1a1a;
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-  }
-  #ask-btn:disabled {
-    background: #999;
-    cursor: default;
   }
   .card {
-    background: #fff;
-    border: 1px solid #e5e2dd;
-    border-radius: 10px;
-    padding: 18px 20px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 20px 22px;
     margin-bottom: 16px;
+    box-shadow: 0 1px 2px rgba(20, 20, 10, 0.03), 0 8px 24px rgba(20, 20, 10, 0.04);
+  }
+  .card.answer-card {
+    border-left: 3px solid var(--accent);
+  }
+  .card.answer-card.declined-card {
+    border-left-color: #c97f1e;
   }
   .card h2 {
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: #888;
-    margin: 0 0 8px;
+    letter-spacing: 0.05em;
+    color: #8a8a8a;
+    margin: 0 0 10px;
   }
   #answer-text {
-    font-size: 1.05rem;
-    line-height: 1.5;
+    font-size: 1.08rem;
+    line-height: 1.55;
     white-space: pre-wrap;
   }
   .declined { color: #a15c00; }
   .chunk {
-    border-top: 1px solid #eee;
-    padding: 12px 0;
+    border-top: 1px solid #efece7;
+    padding: 14px 0;
   }
   .chunk:first-child { border-top: none; padding-top: 0; }
   .chunk-meta {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: baseline;
+    gap: 6px;
     margin-bottom: 6px;
     font-size: 0.8rem;
-    color: #666;
+    color: var(--muted);
   }
   .similarity {
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    background: #f0efec;
+    background: var(--accent-tint);
     border-radius: 5px;
-    padding: 2px 7px;
+    padding: 2px 8px;
     font-weight: 600;
-    color: #1a1a1a;
+    color: var(--accent-dark);
   }
   .chunk-text {
     font-size: 0.9rem;
     color: #333;
-    line-height: 1.45;
+    line-height: 1.5;
   }
   .status {
     color: #888;
@@ -177,6 +230,7 @@
 </head>
 <body>
 <div class="wrap">
+  <span class="eyebrow">RAG document Q&amp;A</span>
   <h1>Ask My Docs</h1>
   <p class="subtitle">
     Upload your own PDF, DOCX, or TXT file (up to 4 MB), then ask questions about its
@@ -194,10 +248,12 @@
     <p id="active-doc" hidden></p>
   </div>
 
-  <h2>2. Ask a question</h2>
+  <h2 class="section">2. Ask a question</h2>
   <div id="samples" class="samples" hidden>
-    <button class="sample-btn" data-q="What did this person do at UnitedHealth Group?">What did this person do at UnitedHealth Group?</button>
+    <button class="sample-btn" data-q="What does this person do at Optum now?">What does this person do at Optum now?</button>
     <button class="sample-btn" data-q="What was their MSc dissertation project about?">What was their MSc dissertation project about?</button>
+    <button class="sample-btn" data-q="Where did this person go to university?">Where did this person go to university?</button>
+    <button class="sample-btn" data-q="What skills does this person have?">What skills does this person have?</button>
   </div>
 
   <div class="ask-row">
@@ -336,8 +392,9 @@
 
   function render(data) {
     const answerClass = data.answered ? "" : "declined";
+    const cardClass = data.answered ? "card answer-card" : "card answer-card declined-card";
     let html = `
-      <div class="card">
+      <div class="${cardClass}">
         <h2>Answer</h2>
         <div id="answer-text" class="${answerClass}">${escapeHtml(data.answer)}</div>
       </div>
